@@ -2683,7 +2683,7 @@ function renderInventory(){
   document.getElementById('inv-stat-exp').textContent=expCount;
   const body=document.getElementById('inv-body');
   if(!products.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">No products yet</td></tr>`;return;}
-  body.innerHTML=products.filter(p=>!invQ||(p.name.toLowerCase().includes(invQ)||(p.cat||').toLowerCase().includes(invQ))).map(p=>{
+  body.innerHTML=products.filter(p=>!invQ||(p.name.toLowerCase().includes(invQ)||(p.cat||'').toLowerCase().includes(invQ))).map(p=>{
     const pct=Math.min(100,Math.round(p.stock/(Math.max(p.alert*4,1))*100));
     const cls=p.stock===0?'critical':p.stock<=p.alert?'low':'';
     const badge=p.stock===0?'badge-red':p.stock<=p.alert?'badge-gold':'badge-green';
