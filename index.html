@@ -3,6 +3,11 @@
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Checkout Hub">
 <title>Checkout Hub — Business Manager v6</title>
 <link href="./checkout-hub-v6_files/css2" rel="stylesheet">
 <style>
@@ -411,6 +416,15 @@ nav::-webkit-scrollbar{display:none}
 .qr-thumb img{width:100%;height:100%;object-fit:cover}
 .qr-thumb-row{display:flex;align-items:center;gap:10px}
 
+
+/* ══ EXPENSES & REPORTS ══ */
+.rep-bar{height:5px;background:var(--border);border-radius:3px;margin-top:5px;width:100%}
+.rep-bar-fill{height:5px;background:var(--gold);border-radius:3px;transition:width .4s}
+.exp-cat-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;background:var(--surface3);color:var(--muted)}
+/* ══ INVENTORY SEARCH ══ */
+.inv-search-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.inv-search-bar input{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-family:var(--font-body);font-size:12px;outline:none;color:var(--ink)}
+
 </style>
 </head>
 <body>
@@ -524,6 +538,8 @@ nav::-webkit-scrollbar{display:none}
   <div class="nav-tab" onclick="showPage(&#39;profit&#39;,this)">💰 Profits</div>
   <div class="nav-tab" onclick="showPage(&#39;catalog&#39;,this)">📦 Products</div>
   <div class="nav-tab" onclick="showPage(&#39;inventory&#39;,this)">📊 Inventory <span class="nav-badge hidden" id="inv-stock-badge">0</span></div>
+  <div class="nav-tab" onclick="showPage(&#39;expenses&#39;,this)">💸 Expenses</div>
+  <div class="nav-tab" onclick="showPage(&#39;reports&#39;,this)">📈 Reports</div>
   <div class="nav-tab" onclick="showPage(&#39;settings&#39;,this)">⚙️ Settings</div>
   <div class="nav-right">
     <button class="cart-btn" onclick="openCart()">🛒 Cart <span class="cart-count" id="cart-count-badge">0</span></button>
@@ -1488,6 +1504,7 @@ nav::-webkit-scrollbar{display:none}
   <div class="page-head">
     <div><div class="page-title">Customer Orders</div><div class="page-sub">Orders placed through the shop · Auto-syncs to invoice</div></div>
     <div style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="exportOrdersCSV()">📥 CSV</button>
       <button class="btn btn-ghost btn-sm" onclick="clearDoneOrders()">Clear done</button>
     </div>
   </div>
@@ -1654,6 +1671,7 @@ nav::-webkit-scrollbar{display:none}
 <div class="page" id="page-profit">
   <div class="page-head">
     <div><div class="page-title">Profit Tracker</div><div class="page-sub">🔒 Private — never share this page</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="exportProfitCSV()">📥 CSV</button>
     <button class="btn btn-ghost btn-sm" onclick="clearProfitForm()">Clear form</button>
   </div>
   <div class="profit-stat-grid">
@@ -1735,6 +1753,10 @@ nav::-webkit-scrollbar{display:none}
   <div class="page-head">
     <div><div class="page-title">Inventory</div><div class="page-sub">Auto-deducts on invoice save · Expiry alerts</div></div>
     <button class="btn btn-primary" onclick="openProductModal(null)">+ Add product</button>
+  </div>
+  <div class="inv-search-bar">
+    <input id="inv-search-input" placeholder="🔍 Search products, categories..." oninput="renderInventory()">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('inv-search-input').value='';renderInventory()">Clear</button>
   </div>
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-val" id="inv-stat-total" style="color:var(--white)">69</div><div class="stat-lbl">Total products</div></div>
@@ -1843,6 +1865,8 @@ let products=saved?.products||[
   {id:1,name:"Korean Chicken Poppers 1KG",cat:"Frozen Goods",price:259,cost:215,stock:12,alert:3,desc:"",photos:[],expiry:""}
 ];
 let invoiceLog=saved?.invoiceLog||[];
+let expenses=saved?.expenses||[];
+let nextExpId=saved?.nextExpId||1;
 let settings=saved?.settings||{
   storeName:'CHECKOUT HUB',
   tagline:'Online Shopping — Fresh goods & more delivered to you',
@@ -1884,13 +1908,13 @@ let notifTimeout=null;
 // SAVE
 // ═══════════════════════════════════════════
 function saveAll(){
-  const d={products,invoiceLog,profitLog,customerOrders,nextProdId,invCounter,profitCounter,orderCounter,settings};
+  const d={products,invoiceLog,profitLog,customerOrders,nextProdId,invCounter,profitCounter,orderCounter,settings,expenses,nextExpId};
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));showToast('✅ All data saved!');}
   catch(e){showToast(e.name==='QuotaExceededError'?'⚠️ Storage full — use smaller photos':'❌ Save failed');}
 }
 function autoSave(){
   try{
-    const d={products,invoiceLog,profitLog,customerOrders,nextProdId,invCounter,profitCounter,orderCounter,settings};
+    const d={products,invoiceLog,profitLog,customerOrders,nextProdId,invCounter,profitCounter,orderCounter,settings,expenses,nextExpId};
     localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
   }catch(e){}
 }
@@ -1906,6 +1930,8 @@ function showPage(name,el){
   el.classList.add('active');
   if(name==='home')renderHome();
   if(name==='settings')renderSettings();
+  if(name==='expenses'){renderExpenses();}
+  if(name==='reports'){renderReports();}
   if(name==='shop')renderShop();
   if(name==='orders')renderOrders();
   if(name==='catalog')renderCatalog();
@@ -2647,6 +2673,7 @@ function renderCatalog(){
 }
 
 function renderInventory(){
+  const invQ=(document.getElementById('inv-search-input')||{value:''}).value.toLowerCase();
   updateCatDatalist();
   const expCount=products.filter(p=>{const e=getExpiryStatus(p.expiry);return e&&(e.status==='expiring'||e.status==='expired');}).length;
   document.getElementById('inv-stat-total').textContent=products.length;
@@ -2656,7 +2683,7 @@ function renderInventory(){
   document.getElementById('inv-stat-exp').textContent=expCount;
   const body=document.getElementById('inv-body');
   if(!products.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">No products yet</td></tr>`;return;}
-  body.innerHTML=products.map(p=>{
+  body.innerHTML=products.filter(p=>!invQ||(p.name.toLowerCase().includes(invQ)||(p.cat||').toLowerCase().includes(invQ))).map(p=>{
     const pct=Math.min(100,Math.round(p.stock/(Math.max(p.alert*4,1))*100));
     const cls=p.stock===0?'critical':p.stock<=p.alert?'low':'';
     const badge=p.stock===0?'badge-red':p.stock<=p.alert?'badge-gold':'badge-green';
@@ -2749,12 +2776,13 @@ function renderHome(){
   document.getElementById('hs-month-count').textContent=monthEntries.length+' records';
   var allRev=invoiceLog.reduce(function(s,e){return s+(e.total||0);},0)+profitLog.reduce(function(s,e){return s+(e.revenue||0);},0);
   var allCost=invoiceLog.reduce(function(s,e){return s+(e.cost||0);},0)+profitLog.reduce(function(s,e){return s+(e.cost||0);},0);
-  var totalProfit=allRev-allCost;
+  var totalExp=expenses.reduce(function(s,e){return s+e.amount;},0);
+  var totalProfit=allRev-allCost-totalExp;
   var margin=allRev>0?Math.round((totalProfit/allRev)*100):0;
   var profEl=document.getElementById('hs-profit');
   profEl.textContent=peso(totalProfit);
   profEl.style.color=totalProfit>=0?'var(--green)':'var(--accent)';
-  document.getElementById('hs-margin').textContent=margin+'% margin';
+  document.getElementById('hs-margin').textContent=margin+'% net margin';
   var lowItems=products.filter(function(p){return typeof p.stock==='number'&&typeof p.alert==='number'&&p.stock<=p.alert;});
   document.getElementById('hs-lowstock').textContent=lowItems.length;
   document.getElementById('hs-lowstock-hint').textContent=lowItems.length===0?'all stocked up':'items need restocking';
@@ -3031,6 +3059,186 @@ function printInvoice(){
   window.open(url,'_blank','width=840,height=960');
 }
 
+
+
+// ═══════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════
+function dlCSV(filename,rows){
+  const csv=rows.map(r=>r.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(',')).join('
+');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+function exportProfitCSV(){
+  const rows=[['#','Label','Source','Revenue','Cost','Gross Profit','Margin %','Date']];
+  invoiceLog.forEach(e=>rows.push([e.no,e.buyer,e.fromShop?'Shop':'Invoice',e.total||0,e.cost||0,e.profit||0,e.total>0?Math.round(((e.profit||0)/e.total)*100):0,e.date]));
+  profitLog.forEach(e=>rows.push([e.no,e.label,'Manual',e.revenue||0,e.cost||0,e.profit||0,e.margin||0,e.date]));
+  dlCSV('profit-log.csv',rows);showToast('📥 Profit log exported');
+}
+function exportOrdersCSV(){
+  const rows=[['Order #','Buyer','Contact','Items','Total','Status','Date']];
+  customerOrders.forEach(o=>rows.push([o.no,o.buyer,o.contact||'',Array.isArray(o.items)?o.items.length:0,o.total||0,o.status,o.date]));
+  dlCSV('orders.csv',rows);showToast('📥 Orders exported');
+}
+function exportExpensesCSV(){
+  const rows=[['Date','Description','Category','Amount','Notes']];
+  [...expenses].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>rows.push([e.date,e.label,e.cat,e.amount,e.notes||'']));
+  dlCSV('expenses.csv',rows);showToast('📥 Expenses exported');
+}
+
+// ═══════════════════════════════════════════
+// EXPENSES TRACKER
+// ═══════════════════════════════════════════
+function addExpense(){
+  const label=document.getElementById('exp-label').value.trim();
+  if(!label){showToast('Enter a description');return;}
+  const amount=parseFloat(document.getElementById('exp-amount').value)||0;
+  if(amount<=0){showToast('Enter a valid amount');return;}
+  const cat=document.getElementById('exp-cat').value;
+  const date=document.getElementById('exp-date').value||new Date().toISOString().split('T')[0];
+  const notes=document.getElementById('exp-notes').value.trim();
+  expenses.push({id:nextExpId++,date,label,cat,amount,notes});
+  autoSave();
+  document.getElementById('exp-label').value='';
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-notes').value='';
+  renderExpenses();
+  showToast('💸 Expense added');
+}
+function deleteExpense(id){
+  if(!confirm('Delete this expense?'))return;
+  expenses=expenses.filter(e=>e.id!==id);
+  autoSave();renderExpenses();showToast('Deleted');
+}
+function renderExpenses(){
+  // Set default date to today
+  const dateEl=document.getElementById('exp-date');
+  if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().split('T')[0];
+  // Summary
+  const now=new Date();
+  const thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthTotal=expenses.filter(e=>e.date.startsWith(thisMonth)).reduce((s,e)=>s+e.amount,0);
+  const allTotal=expenses.reduce((s,e)=>s+e.amount,0);
+  const me=document.getElementById('exp-month-total');if(me)me.textContent=peso(monthTotal);
+  const ae=document.getElementById('exp-all-total');if(ae)ae.textContent=peso(allTotal);
+  // Log
+  const body=document.getElementById('exp-log-body');if(!body)return;
+  if(!expenses.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No expenses yet — add your first one above.</td></tr>';return;}
+  const sorted=[...expenses].sort((a,b)=>b.date.localeCompare(a.date));
+  body.innerHTML=sorted.map(e=>`<tr>
+    <td style="color:var(--muted);white-space:nowrap">${e.date}</td>
+    <td style="font-weight:600;color:var(--white)">${e.label}</td>
+    <td><span class="exp-cat-badge">${e.cat}</span></td>
+    <td style="color:var(--accent);font-weight:700">${peso(e.amount)}</td>
+    <td style="color:var(--muted)">${e.notes||'—'}</td>
+    <td><button class="btn btn-danger btn-xs" onclick="deleteExpense(${e.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════
+function renderReports(){
+  const container=document.getElementById('rep-content');if(!container)return;
+  // Build monthly map from invoiceLog + profitLog
+  const monthMap={};
+  [...invoiceLog,...profitLog].forEach(e=>{
+    const d=new Date(e.date);if(isNaN(d.getTime()))return;
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!monthMap[key])monthMap[key]={revenue:0,cost:0,profit:0,expenses:0,count:0};
+    monthMap[key].revenue+=(e.total||e.revenue||0);
+    monthMap[key].cost+=(e.cost||0);
+    monthMap[key].profit+=(e.profit||0);
+    monthMap[key].count++;
+  });
+  // Add expenses per month
+  expenses.forEach(e=>{
+    const key=e.date.substring(0,7);
+    if(!monthMap[key])monthMap[key]={revenue:0,cost:0,profit:0,expenses:0,count:0};
+    monthMap[key].expenses+=e.amount;
+  });
+  const months=Object.keys(monthMap).sort((a,b)=>b.localeCompare(a));
+  if(!months.length){
+    container.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px"><div style="font-size:32px;margin-bottom:8px">📈</div><p>No data yet. Save some invoices to see reports.</p></div>';
+    return;
+  }
+  const maxRev=Math.max(1,...months.map(m=>monthMap[m].revenue));
+  // Top products from invoiceLog items
+  const prodMap={};
+  invoiceLog.forEach(inv=>{
+    if(!Array.isArray(inv.items))return;
+    inv.items.forEach(it=>{
+      if(!it.name)return;
+      if(!prodMap[it.name])prodMap[it.name]={qty:0,revenue:0,profit:0};
+      prodMap[it.name].qty+=it.qty||0;
+      prodMap[it.name].revenue+=(it.qty||0)*(it.price||0);
+      prodMap[it.name].profit+=(it.qty||0)*((it.price||0)-(it.cost||0));
+    });
+  });
+  const topProds=Object.entries(prodMap).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
+  // All-time totals
+  const totRev=months.reduce((s,m)=>s+monthMap[m].revenue,0);
+  const totProfit=months.reduce((s,m)=>s+monthMap[m].profit,0);
+  const totExp=months.reduce((s,m)=>s+monthMap[m].expenses,0);
+  const netProfit=totProfit-totExp;
+  const summaryHtml=`
+  <div class="profit-stat-grid" style="margin-bottom:14px">
+    <div class="profit-stat rev"><div class="profit-stat-val" style="color:var(--gold)">${peso(totRev)}</div><div class="profit-stat-lbl">Total Revenue</div></div>
+    <div class="profit-stat"><div class="profit-stat-val" style="color:var(--green)">${peso(totProfit)}</div><div class="profit-stat-lbl">Gross Profit</div></div>
+    <div class="profit-stat"><div class="profit-stat-val" style="color:var(--accent)">${peso(totExp)}</div><div class="profit-stat-lbl">Total Expenses</div></div>
+    <div class="profit-stat"><div class="profit-stat-val" style="color:${netProfit>=0?'var(--green)':'var(--accent)'}">${peso(netProfit)}</div><div class="profit-stat-lbl">Net Profit</div></div>
+  </div>`;
+  const monthlyHtml=`
+  <div class="settings-section">
+    <div class="settings-section-title">📅 Monthly Breakdown</div>
+    <div style="overflow:auto">
+      <table class="tbl" style="min-width:560px">
+        <thead><tr><th>Month</th><th style="text-align:center">Sales</th><th>Revenue</th><th>Gross Profit</th><th>Expenses</th><th>Net Profit</th></tr></thead>
+        <tbody>${months.map(m=>{
+          const d=monthMap[m];
+          const net=d.profit-d.expenses;
+          const pct=d.revenue>0?Math.round((d.profit/d.revenue)*100):0;
+          const bw=Math.round((d.revenue/maxRev)*100);
+          const [yr,mo]=m.split('-');
+          const lbl=new Date(parseInt(yr),parseInt(mo)-1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+          return `<tr>
+            <td><div style="font-weight:700;color:var(--white)">${lbl}</div><div class="rep-bar"><div class="rep-bar-fill" style="width:${bw}%"></div></div></td>
+            <td style="text-align:center;color:var(--muted)">${d.count}</td>
+            <td style="color:var(--gold)">${peso(d.revenue)}</td>
+            <td style="color:${d.profit>=0?'var(--green)':'var(--accent)'}">${peso(d.profit)} <span class="badge badge-blue">${pct}%</span></td>
+            <td style="color:var(--accent)">${d.expenses>0?peso(d.expenses):'—'}</td>
+            <td><b style="color:${net>=0?'var(--green)':'var(--accent)'}">${peso(net)}</b></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+  const topProdsHtml=topProds.length?`
+  <div class="settings-section">
+    <div class="settings-section-title">🏆 Top Products by Revenue</div>
+    <div style="overflow:auto">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Product</th><th style="text-align:center">Units Sold</th><th>Revenue</th><th>Profit</th></tr></thead>
+        <tbody>${topProds.map(([name,d],i)=>`<tr>
+          <td style="color:var(--muted)">${i+1}</td>
+          <td style="font-weight:600">${name}</td>
+          <td style="text-align:center;color:var(--muted)">${d.qty}</td>
+          <td style="color:var(--gold)">${peso(d.revenue)}</td>
+          <td style="color:var(--green)">${peso(d.profit)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`:'';
+  container.innerHTML=summaryHtml+monthlyHtml+topProdsHtml;
+}
+
+// Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
@@ -3083,6 +3291,57 @@ renderHome();
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn btn-green" onclick="saveSettings()">💾 Save Settings</button>
     <button class="btn btn-ghost btn-sm" onclick="showPage('home',document.getElementById('tab-home'))">← Back to Home</button>
+  </div>
+</div>
+
+
+<!-- ══════════ EXPENSES ══════════ -->
+<div class="page" id="page-expenses">
+  <div class="page-head">
+    <div><div class="page-title">Expenses</div><div class="page-sub">Track business costs — deducted from your net profit</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="exportExpensesCSV()">📥 CSV</button>
+  </div>
+  <div class="profit-stat-grid" style="margin-bottom:14px">
+    <div class="profit-stat"><div class="profit-stat-val" id="exp-month-total" style="color:var(--accent)">₱0</div><div class="profit-stat-lbl">This month</div></div>
+    <div class="profit-stat"><div class="profit-stat-val" id="exp-all-total" style="color:var(--accent)">₱0</div><div class="profit-stat-lbl">All-time total</div></div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Add Expense</div>
+    <div class="form-row">
+      <div class="field"><label>Description</label><input id="exp-label" placeholder="e.g. Packaging materials"></div>
+      <div class="field"><label>Category</label>
+        <select id="exp-cat" class="select">
+          <option>Packaging</option><option>Delivery / Shipping</option><option>Utilities</option>
+          <option>Rent</option><option>Supplies</option><option>Marketing</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Amount (₱)</label><input id="exp-amount" type="number" placeholder="0" min="0" step="0.01"></div>
+      <div class="field"><label>Date</label><input id="exp-date" type="date"></div>
+    </div>
+    <div class="field"><label>Notes (optional)</label><input id="exp-notes" placeholder="e.g. 50 pcs from SM Dasma"></div>
+    <button class="btn btn-green" onclick="addExpense()" style="margin-top:4px">+ Add Expense</button>
+  </div>
+  <div style="overflow:auto">
+    <table class="tbl">
+      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="exp-log-body"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No expenses yet.</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ REPORTS ══════════ -->
+<div class="page" id="page-reports">
+  <div class="page-head">
+    <div><div class="page-title">Reports</div><div class="page-sub">Monthly breakdown · Top products · Revenue trends</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="renderReports()">🔄 Refresh</button>
+  </div>
+  <div id="rep-content">
+    <div style="text-align:center;color:var(--muted);padding:40px">
+      <div style="font-size:32px;margin-bottom:8px">📈</div>
+      <p>No data yet. Save some invoices to see reports.</p>
+    </div>
   </div>
 </div>
 
