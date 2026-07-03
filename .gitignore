@@ -2,3 +2,8 @@ archive/
 checkout-next/
 _*.py
 DEMO.txt
+
+.vercel
+
+_*.js
+checkout-hub-v*.html
