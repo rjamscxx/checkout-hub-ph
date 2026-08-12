@@ -25,7 +25,7 @@ export async function importBackup(file: File): Promise<void> {
   const data = JSON.parse(text) as Record<string, unknown>
   if (!data['version'] || !data['products']) throw new Error('Invalid backup file')
 
-  await db.transaction('rw', db.products, db.orders, db.invoices, db.profits, db.expenses, db.settings, async () => {
+  await db.transaction('rw', [db.products, db.orders, db.invoices, db.profits, db.expenses, db.settings], async () => {
     await db.products.clear()
     await db.orders.clear()
     await db.invoices.clear()
