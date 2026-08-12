@@ -1,0 +1,57 @@
+import React, { useRef } from 'react'
+
+interface PhotoUploaderProps {
+  photos: string[]
+  onChange: (photos: string[]) => void
+  max?: number
+}
+
+function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+export function PhotoUploader({ photos, onChange, max = 8 }: PhotoUploaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function handleFiles(files: FileList | null) {
+    if (!files) return
+    const newPhotos: string[] = []
+    for (const file of Array.from(files)) {
+      if (photos.length + newPhotos.length >= max) break
+      newPhotos.push(await toBase64(file))
+    }
+    onChange([...photos, ...newPhotos])
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        {photos.map((src, i) => (
+          <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E8E5DF', flexShrink: 0 }}>
+            <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <button
+              onClick={() => onChange(photos.filter((_, j) => j !== i))}
+              style={{ position: 'absolute', top: '2px', right: '2px', width: '20px', height: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+            >×</button>
+          </div>
+        ))}
+        {photos.length < max && (
+          <button
+            onClick={() => inputRef.current?.click()}
+            style={{ width: '80px', height: '80px', border: '2px dashed #E8E5DF', borderRadius: '8px', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6B6760', fontSize: '11px', gap: '4px', cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: '24px' }}>+</span>
+            <span>Photo</span>
+          </button>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
+      <p style={{ fontSize: '11px', color: '#6B6760', fontFamily: 'Inter, system-ui, sans-serif', margin: 0 }}>{photos.length}/{max} photos</p>
+    </div>
+  )
+}
