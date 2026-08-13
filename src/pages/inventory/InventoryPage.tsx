@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Check, X, Boxes } from 'lucide-react'
 import { db } from '../../db'
 import { Badge } from '../../components/ui/Badge'
+import { EmptyState } from '../../components/shared/EmptyState'
 import { updateProduct, toggleAvailableToday } from '../../hooks/useProducts'
 
 export function InventoryPage() {
@@ -29,30 +31,28 @@ export function InventoryPage() {
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h1 style={{ fontWeight: 700, color: '#1A1917', fontSize: '22px', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>Inventory</h1>
+      <h1 style={{ fontWeight: 700, color: '#18171A', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Inventory</h1>
 
       {/* Alert summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(224,28,36,0.13)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#E01C24', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>{outOfStock.length}</p>
-          <p style={{ fontSize: '11px', color: '#6B6760', margin: '2px 0 0', fontFamily: 'Inter, system-ui, sans-serif' }}>Out of Stock</p>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: '#D91A22', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{outOfStock.length}</p>
+          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Out of Stock</p>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(184,134,11,0.13)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#B8860B', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>{lowStock.length}</p>
-          <p style={{ fontSize: '11px', color: '#6B6760', margin: '2px 0 0', fontFamily: 'Inter, system-ui, sans-serif' }}>Low Stock</p>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: '#9A6F0A', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{lowStock.length}</p>
+          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Low Stock</p>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid #E8E5DF' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#1A1917', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>{expiringSoon.length}</p>
-          <p style={{ fontSize: '11px', color: '#6B6760', margin: '2px 0 0', fontFamily: 'Inter, system-ui, sans-serif' }}>Expiring Soon</p>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: '#18171A', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{expiringSoon.length}</p>
+          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Expiring Soon</p>
         </div>
       </div>
 
       {/* Full inventory list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {!products.length && (
-          <p style={{ color: '#6B6760', fontSize: '14px', textAlign: 'center', padding: '48px 16px', fontFamily: 'Inter, system-ui, sans-serif' }}>
-            No products yet. Add some in the Products tab.
-          </p>
+          <EmptyState icon={Boxes} title="Nothing to track yet" message="Add products in the Products tab and their stock levels show up here." />
         )}
         {products.map(p => (
           <div
@@ -60,7 +60,8 @@ export function InventoryPage() {
             style={{
               background: '#fff',
               borderRadius: '12px',
-              border: '1px solid #E8E5DF',
+              border: '1px solid rgba(230,227,220,0.6)',
+              boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)',
               padding: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -68,12 +69,12 @@ export function InventoryPage() {
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: '#1A1917', fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Inter, system-ui, sans-serif' }}>
+              <p style={{ fontWeight: 600, color: '#18171A', fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
                 {p.name}
               </p>
-              <p style={{ fontSize: '12px', color: '#6B6760', margin: '2px 0 0', fontFamily: 'Inter, system-ui, sans-serif' }}>{p.category}</p>
+              <p style={{ fontSize: '12px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.category}</p>
               {p.expiryDate && (
-                <p style={{ fontSize: '11px', color: '#B8860B', margin: '2px 0 0', fontFamily: 'Inter, system-ui, sans-serif' }}>Exp: {p.expiryDate}</p>
+                <p style={{ fontSize: '11px', color: '#9A6F0A', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Exp: {p.expiryDate}</p>
               )}
             </div>
 
@@ -91,13 +92,13 @@ export function InventoryPage() {
                   borderRadius: '6px',
                   border: 'none',
                   cursor: 'pointer',
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  background: p.availableToday ? 'rgba(26,158,92,0.10)' : '#F5F4F0',
-                  color: p.availableToday ? '#1A9E5C' : '#6B6760',
+                  fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                  background: p.availableToday ? 'rgba(22,122,70,0.09)' : '#F2F1EE',
+                  color: p.availableToday ? '#167A46' : '#79767F',
                   transition: 'all 0.15s',
                 }}
               >
-                {p.availableToday ? '✓' : 'Off'}
+                {p.availableToday ? 'On' : 'Off'}
               </button>
 
               {restocking === p.id ? (
@@ -110,37 +111,37 @@ export function InventoryPage() {
                     style={{
                       width: '52px',
                       fontSize: '13px',
-                      border: '1px solid #E8E5DF',
+                      border: '1px solid #E6E3DC',
                       borderRadius: '6px',
                       padding: '4px 6px',
-                      background: '#F5F4F0',
+                      background: '#F2F1EE',
                       outline: 'none',
-                      fontFamily: 'Inter, system-ui, sans-serif',
+                      fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                     }}
                     autoFocus
                     onKeyDown={e => e.key === 'Enter' && p.id != null && handleRestock(p.id)}
                   />
                   <button
                     onClick={() => p.id != null && handleRestock(p.id)}
+                    aria-label="Apply restock"
                     style={{
-                      fontSize: '11px',
-                      background: '#E01C24',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: '#D91A22',
                       color: '#fff',
                       border: 'none',
                       borderRadius: '6px',
-                      padding: '5px 8px',
+                      padding: '5px 7px',
                       cursor: 'pointer',
-                      fontWeight: 600,
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
-                    +
+                    <Check size={15} strokeWidth={2.2} />
                   </button>
                   <button
                     onClick={() => setRestocking(null)}
-                    style={{ fontSize: '14px', color: '#6B6760', background: 'none', border: 'none', cursor: 'pointer' }}
+                    aria-label="Cancel restock"
+                    style={{ display: 'inline-flex', alignItems: 'center', color: '#79767F', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                   >
-                    ✕
+                    <X size={15} strokeWidth={2} />
                   </button>
                 </div>
               ) : (
@@ -148,12 +149,12 @@ export function InventoryPage() {
                   onClick={() => { setRestocking(p.id ?? null); setRestockQty('') }}
                   style={{
                     fontSize: '11px',
-                    color: '#6B6760',
+                    color: '#79767F',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     padding: '2px 4px',
-                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                   }}
                 >
                   Restock

@@ -20,6 +20,9 @@ export interface OrderItem {
   name: string
   qty: number
   price: number
+  /** Unit cost snapshotted at sell time — the basis for profit. Optional for
+   *  legacy orders created before cost tracking. */
+  cost?: number
 }
 
 export interface Order {

@@ -6,9 +6,12 @@ DEMO.txt
 .vercel
 
 _*.js
+_*.mjs
 checkout-hub-v*.html
 
 node_modules/
 dist/
+.vite/
+_verify/
 *.local
 .env

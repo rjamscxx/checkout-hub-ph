@@ -1,24 +1,32 @@
 import { useEffect, useRef, useState } from 'react'
+import { Check, Download, Upload } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { getSetting, setSetting } from '../../db'
 import { exportBackup, importBackup } from '../../lib/backup'
+import { DEFAULT_MARGIN_FLOOR } from '../../hooks/useOrders'
+import { color, font, shadow } from '../../lib/theme'
 
 export function SettingsPage() {
   const [storeName, setStoreName] = useState('')
+  const [tagline, setTagline] = useState('')
   const [invoicePrefix, setInvoicePrefix] = useState('INV')
+  const [marginFloor, setMarginFloor] = useState(String(DEFAULT_MARGIN_FLOOR))
   const [saved, setSaved] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getSetting('store_name', 'Checkout Hub').then(setStoreName)
+    getSetting('store_tagline', '').then(setTagline)
     getSetting('invoice_prefix', 'INV').then(setInvoicePrefix)
+    getSetting('margin_floor', String(DEFAULT_MARGIN_FLOOR)).then(setMarginFloor)
   }, [])
 
   async function handleSave() {
     await setSetting('store_name', storeName)
+    await setSetting('store_tagline', tagline)
     await setSetting('invoice_prefix', invoicePrefix)
-    // Trigger storage event so App.tsx re-reads store name
+    await setSetting('margin_floor', String(Math.max(0, Math.min(100, Number(marginFloor) || 0))))
     window.dispatchEvent(new Event('settings-updated'))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -34,46 +42,56 @@ export function SettingsPage() {
     } catch {
       alert('Failed to restore backup. Please check the file format.')
     }
-    // Reset input
     if (importRef.current) importRef.current.value = ''
   }
 
   const section: React.CSSProperties = {
-    background: '#fff', borderRadius: '12px', border: '1px solid #E8E5DF', padding: '16px',
-    display: 'flex', flexDirection: 'column', gap: '12px',
+    background: color.surface, borderRadius: '14px', border: `1px solid ${color.border}`, boxShadow: shadow.xs,
+    padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px',
   }
-
   const sectionTitle: React.CSSProperties = {
-    fontSize: '11px', fontWeight: 600, color: '#6B6760', textTransform: 'uppercase',
-    letterSpacing: '0.5px', margin: 0, fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '11px', fontWeight: 700, color: color.muted, textTransform: 'uppercase',
+    letterSpacing: '0.06em', margin: 0, fontFamily: font,
   }
+  const helper: React.CSSProperties = { fontSize: '13px', color: color.muted, margin: 0, fontFamily: font, lineHeight: 1.5, textWrap: 'pretty' }
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h1 style={{ fontWeight: 700, color: '#1A1917', fontSize: '22px', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>Settings</h1>
+      <h1 style={{ fontWeight: 700, color: color.ink, fontSize: '22px', margin: 0, fontFamily: font, letterSpacing: '-0.02em' }}>Settings</h1>
 
       {/* Store info */}
       <div style={section}>
-        <p style={sectionTitle}>Store Info</p>
-        <Input label="Store Name" value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="e.g. RJ Merchandise" />
-        <Input label="Invoice Prefix" value={invoicePrefix} onChange={e => setInvoicePrefix(e.target.value)} placeholder="INV" />
+        <p style={sectionTitle}>Store</p>
+        <Input label="Store name" value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="e.g. RJ General Merchandise" />
+        <Input label="Tagline" value={tagline} onChange={e => setTagline(e.target.value)} placeholder="e.g. Legit online seller · Metro Manila" />
+        <Input label="Invoice prefix" value={invoicePrefix} onChange={e => setInvoicePrefix(e.target.value)} placeholder="INV" />
+      </div>
+
+      {/* Profit rules */}
+      <div style={section}>
+        <p style={sectionTitle}>Profit</p>
+        <Input
+          label="Minimum margin (%)"
+          type="number" min="0" max="100"
+          value={marginFloor}
+          onChange={e => setMarginFloor(e.target.value)}
+        />
+        <p style={helper}>Orders below this margin get flagged in amber so you never sell too cheap by accident.</p>
         <Button onClick={handleSave} style={{ alignSelf: 'flex-start' }}>
-          {saved ? '✓ Saved!' : 'Save Settings'}
+          {saved ? <><Check size={15} strokeWidth={2.4} /> Saved</> : 'Save settings'}
         </Button>
       </div>
 
       {/* Data backup */}
       <div style={section}>
-        <p style={sectionTitle}>Data Backup</p>
-        <p style={{ fontSize: '13px', color: '#6B6760', margin: 0, fontFamily: 'Inter, system-ui, sans-serif', lineHeight: 1.5 }}>
-          Export a JSON file with all your products, orders, profits, and expenses. Import it anytime to restore your data.
-        </p>
+        <p style={sectionTitle}>Data backup</p>
+        <p style={helper}>Export a JSON file with all your products, orders, profits, and expenses. Import it anytime to restore.</p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="outline" style={{ flex: 1 }} onClick={exportBackup}>
-            ⬇ Export Backup
+            <Download size={15} strokeWidth={1.9} /> Export
           </Button>
           <Button variant="ghost" style={{ flex: 1 }} onClick={() => importRef.current?.click()}>
-            ⬆ Restore Backup
+            <Upload size={15} strokeWidth={1.9} /> Restore
           </Button>
         </div>
         <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
@@ -82,9 +100,9 @@ export function SettingsPage() {
       {/* About */}
       <div style={section}>
         <p style={sectionTitle}>About</p>
-        <p style={{ fontSize: '13px', color: '#6B6760', margin: 0, fontFamily: 'Inter, system-ui, sans-serif', lineHeight: 1.6 }}>
+        <p style={{ ...helper, lineHeight: 1.6 }}>
           Checkout Hub PH v2.0<br />
-          Local-first PWA — all data on your device<br />
+          Local-first PWA — all data lives on your device<br />
           Works offline, no account needed
         </p>
       </div>

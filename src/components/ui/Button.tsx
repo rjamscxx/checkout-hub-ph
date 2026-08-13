@@ -8,32 +8,55 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size
 }
 
-const VARIANT_STYLES: Record<Variant, React.CSSProperties> = {
-  primary: { background: '#E01C24', color: '#fff' },
-  ghost:   { background: 'transparent', color: '#6B6760' },
-  danger:  { background: 'rgba(224,28,36,0.10)', color: '#E01C24', border: '1px solid rgba(224,28,36,0.28)' },
-  outline: { background: 'transparent', color: '#1A1917', border: '1px solid #E8E5DF' },
+const F = "'Plus Jakarta Sans', system-ui, sans-serif"
+
+const VARIANT_BASE: Record<Variant, React.CSSProperties> = {
+  primary: { background: '#D91A22', color: '#fff' },
+  ghost:   { background: 'transparent', color: '#79767F' },
+  danger:  { background: 'rgba(217,26,34,0.08)', color: '#D91A22', border: '1px solid rgba(217,26,34,0.22)' },
+  outline: { background: 'transparent', color: '#18171A', border: '1px solid #E6E3DC' },
 }
 
 const SIZE_STYLES: Record<Size, React.CSSProperties> = {
-  sm: { fontSize: '12px', padding: '5px 11px' },
-  md: { fontSize: '13px', padding: '7px 14px' },
-  lg: { fontSize: '15px', padding: '10px 20px' },
+  sm: { fontSize: '12px', padding: '5px 12px', height: '30px' },
+  md: { fontSize: '13px', padding: '0 15px', height: '36px' },
+  lg: { fontSize: '15px', padding: '0 22px', height: '44px' },
 }
 
-export function Button({ variant = 'primary', size = 'md', style, disabled, children, ...props }: ButtonProps) {
+export function Button({ variant = 'primary', size = 'md', style, disabled, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp, children, ...props }: ButtonProps) {
+  const [hovered, setHovered] = React.useState(false)
+  const [pressed, setPressed] = React.useState(false)
+
+  const hoverOverride: React.CSSProperties = hovered && !disabled
+    ? variant === 'primary'
+      ? { background: '#B8161E' }
+      : variant === 'ghost'
+      ? { background: '#F2F1EE', color: '#18171A' }
+      : { opacity: 0.85 }
+    : {}
+
+  const pressStyle: React.CSSProperties = pressed && !disabled ? { transform: 'scale(0.97)' } : {}
+
   return (
     <button
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-        fontWeight: 600, borderRadius: '10px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1, transition: 'opacity 0.15s', fontFamily: 'Inter, system-ui, sans-serif',
-        whiteSpace: 'nowrap',
-        ...VARIANT_STYLES[variant],
+        fontWeight: 600, borderRadius: '10px', border: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.45 : 1,
+        transition: 'background 0.12s, opacity 0.12s, transform 0.08s',
+        fontFamily: F, whiteSpace: 'nowrap',
+        ...VARIANT_BASE[variant],
         ...SIZE_STYLES[size],
+        ...hoverOverride,
+        ...pressStyle,
         ...style,
       }}
       disabled={disabled}
+      onMouseEnter={e => { setHovered(true); onMouseEnter?.(e) }}
+      onMouseLeave={e => { setHovered(false); setPressed(false); onMouseLeave?.(e) }}
+      onMouseDown={e => { setPressed(true); onMouseDown?.(e) }}
+      onMouseUp={e => { setPressed(false); onMouseUp?.(e) }}
       {...props}
     >
       {children}

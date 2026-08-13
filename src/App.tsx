@@ -37,7 +37,7 @@ export default function App() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#FAFAF8' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: '#F7F6F3' }}>
       <Header storeName={storeName} />
       <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
         <Page />

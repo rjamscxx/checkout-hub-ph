@@ -1,4 +1,6 @@
 import React, { useRef } from 'react'
+import { X, ImagePlus } from 'lucide-react'
+import { color, font } from '../../lib/theme'
 
 interface PhotoUploaderProps {
   photos: string[]
@@ -32,26 +34,28 @@ export function PhotoUploader({ photos, onChange, max = 8 }: PhotoUploaderProps)
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {photos.map((src, i) => (
-          <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E8E5DF', flexShrink: 0 }}>
+          <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E6E3DC', flexShrink: 0 }}>
             <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <button
               onClick={() => onChange(photos.filter((_, j) => j !== i))}
-              style={{ position: 'absolute', top: '2px', right: '2px', width: '20px', height: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
-            >×</button>
+              aria-label={`Remove photo ${i + 1}`}
+              style={{ position: 'absolute', top: '2px', right: '2px', width: '20px', height: '20px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'grid', placeItems: 'center', lineHeight: 1 }}
+            ><X size={12} strokeWidth={2.4} /></button>
           </div>
         ))}
         {photos.length < max && (
           <button
             onClick={() => inputRef.current?.click()}
-            style={{ width: '80px', height: '80px', border: '2px dashed #E8E5DF', borderRadius: '8px', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6B6760', fontSize: '11px', gap: '4px', cursor: 'pointer' }}
+            aria-label="Add photo"
+            style={{ width: '80px', height: '80px', border: `2px dashed ${color.border}`, borderRadius: '8px', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: color.muted, fontSize: '11px', fontFamily: font, gap: '5px', cursor: 'pointer' }}
           >
-            <span style={{ fontSize: '24px' }}>+</span>
+            <ImagePlus size={22} strokeWidth={1.7} />
             <span>Photo</span>
           </button>
         )}
       </div>
       <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
-      <p style={{ fontSize: '11px', color: '#6B6760', fontFamily: 'Inter, system-ui, sans-serif', margin: 0 }}>{photos.length}/{max} photos</p>
+      <p style={{ fontSize: '11px', color: '#79767F', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: 0 }}>{photos.length}/{max} photos</p>
     </div>
   )
 }

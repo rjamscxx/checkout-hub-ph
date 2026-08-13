@@ -9,17 +9,18 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'logo-mark.png', 'logo-full.png'],
       manifest: {
         name: 'Checkout Hub PH',
         short_name: 'CheckoutHub',
         description: 'Business OS for your general merchandise store',
-        theme_color: '#E01C24',
-        background_color: '#FAFAF8',
+        theme_color: '#D91A22',
+        background_color: '#F7F6F3',
         display: 'standalone',
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: 'pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

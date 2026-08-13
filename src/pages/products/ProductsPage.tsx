@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
+import { Package } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { ProductListItem } from './ProductListItem'
 import { ProductForm } from './ProductForm'
 import { Button } from '../../components/ui/Button'
+import { EmptyState } from '../../components/shared/EmptyState'
+import { color, font } from '../../lib/theme'
 import type { Product } from '../../db'
 
 export function ProductsPage() {
@@ -13,15 +16,17 @@ export function ProductsPage() {
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontWeight: 700, color: '#1A1917', fontSize: '22px', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>Products</h1>
-        <Button size="sm" onClick={() => setAdding(true)}>+ Add Product</Button>
+        <h1 style={{ fontWeight: 700, color: color.ink, fontSize: '20px', margin: 0, fontFamily: font, letterSpacing: '-0.02em' }}>Products</h1>
+        <Button size="sm" onClick={() => setAdding(true)}>Add Product</Button>
       </div>
 
       {!products?.length && (
-        <div style={{ textAlign: 'center', color: '#6B6760', fontSize: '14px', padding: '64px 16px', fontFamily: 'Inter, system-ui, sans-serif' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>📦</div>
-          No products yet. Tap + Add Product to get started.
-        </div>
+        <EmptyState
+          icon={Package}
+          title="No products yet"
+          message="Add your items with cost and sell price so profit tracking works from the first sale."
+          action={{ label: 'Add Product', onClick: () => setAdding(true) }}
+        />
       )}
 
       {products?.map(p => (

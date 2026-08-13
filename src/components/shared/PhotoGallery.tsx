@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ImageOff } from 'lucide-react'
+import { color } from '../../lib/theme'
 
 interface PhotoGalleryProps {
   photos: string[]
@@ -14,13 +16,13 @@ export function PhotoGallery({ photos, aspectRatio = 'square' }: PhotoGalleryPro
     overflow: 'hidden',
     borderRadius: '8px 8px 0 0',
     aspectRatio: aspectRatio === 'square' ? '1 / 1' : '16 / 9',
-    background: '#F5F4F0',
+    background: '#F2F1EE',
   }
 
   if (!photos.length) {
     return (
-      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px' }}>
-        📦
+      <div style={{ ...containerStyle, display: 'grid', placeItems: 'center', color: color.border2 }}>
+        <ImageOff size={28} strokeWidth={1.5} />
       </div>
     )
   }

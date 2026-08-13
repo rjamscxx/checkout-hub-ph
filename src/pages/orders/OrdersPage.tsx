@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { ClipboardList } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import { OrderCard } from './OrderCard'
 import { QuickAddOrder } from './QuickAddOrder'
 import { Button } from '../../components/ui/Button'
+import { EmptyState } from '../../components/shared/EmptyState'
 
 export function OrdersPage() {
   const orders = useOrders()
@@ -12,23 +14,25 @@ export function OrdersPage() {
   const rest = orders?.filter(o => o.status !== 'pending') ?? []
 
   const sectionLabel: React.CSSProperties = {
-    fontSize: '11px', fontWeight: 600, color: '#6B6760',
+    fontSize: '11px', fontWeight: 600, color: '#79767F',
     textTransform: 'uppercase', letterSpacing: '0.5px',
-    fontFamily: 'Inter, system-ui, sans-serif', margin: '0 0 8px',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: '0 0 8px',
   }
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontWeight: 700, color: '#1A1917', fontSize: '22px', margin: 0, fontFamily: 'Inter, system-ui, sans-serif' }}>Orders</h1>
-        <Button size="sm" onClick={() => setAdding(true)}>+ New Order</Button>
+        <h1 style={{ fontWeight: 700, color: '#18171A', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Orders</h1>
+        <Button size="sm" onClick={() => setAdding(true)}>New Order</Button>
       </div>
 
       {!orders?.length && (
-        <div style={{ textAlign: 'center', color: '#6B6760', fontSize: '14px', padding: '64px 16px', fontFamily: 'Inter, system-ui, sans-serif' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
-          No orders yet. Tap + New Order to log one.
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="No orders yet"
+          message="Log your first sale to start tracking profit."
+          action={{ label: 'New Order', onClick: () => setAdding(true) }}
+        />
       )}
 
       {pending.length > 0 && (
