@@ -31,21 +31,21 @@ export function InventoryPage() {
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h1 style={{ fontWeight: 700, color: '#18171A', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Inventory</h1>
+      <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Inventory</h1>
 
       {/* Alert summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#D91A22', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{outOfStock.length}</p>
-          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Out of Stock</p>
+        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-accent)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{outOfStock.length}</p>
+          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Out of Stock</p>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#9A6F0A', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{lowStock.length}</p>
-          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Low Stock</p>
+        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-gold)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{lowStock.length}</p>
+          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Low Stock</p>
         </div>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid rgba(230,227,220,0.6)', boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: '#18171A', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{expiringSoon.length}</p>
-          <p style={{ fontSize: '11px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Expiring Soon</p>
+        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
+          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-ink)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{expiringSoon.length}</p>
+          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Expiring Soon</p>
         </div>
       </div>
 
@@ -58,10 +58,10 @@ export function InventoryPage() {
           <div
             key={p.id}
             style={{
-              background: '#fff',
+              background: 'var(--color-surface)',
               borderRadius: '12px',
-              border: '1px solid rgba(230,227,220,0.6)',
-              boxShadow: '0 1px 3px rgba(24,23,26,0.07), 0 1px 2px rgba(24,23,26,0.04)',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)',
               padding: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -69,12 +69,12 @@ export function InventoryPage() {
             }}
           >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: '#18171A', fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+              <p style={{ fontWeight: 600, color: 'var(--color-ink)', fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
                 {p.name}
               </p>
-              <p style={{ fontSize: '12px', color: '#79767F', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.category}</p>
+              <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.category}</p>
               {p.expiryDate && (
-                <p style={{ fontSize: '11px', color: '#9A6F0A', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Exp: {p.expiryDate}</p>
+                <p style={{ fontSize: '11px', color: 'var(--color-gold)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Exp: {p.expiryDate}</p>
               )}
             </div>
 
@@ -93,8 +93,8 @@ export function InventoryPage() {
                   border: 'none',
                   cursor: 'pointer',
                   fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                  background: p.availableToday ? 'rgba(22,122,70,0.09)' : '#F2F1EE',
-                  color: p.availableToday ? '#167A46' : '#79767F',
+                  background: p.availableToday ? 'var(--color-green-dim)' : 'var(--color-surface2)',
+                  color: p.availableToday ? 'var(--color-green)' : 'var(--color-muted)',
                   transition: 'all 0.15s',
                 }}
               >
@@ -111,10 +111,10 @@ export function InventoryPage() {
                     style={{
                       width: '52px',
                       fontSize: '13px',
-                      border: '1px solid #E6E3DC',
+                      border: '1px solid var(--color-border)',
                       borderRadius: '6px',
                       padding: '4px 6px',
-                      background: '#F2F1EE',
+                      background: 'var(--color-surface2)',
                       outline: 'none',
                       fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
                     }}
@@ -126,8 +126,8 @@ export function InventoryPage() {
                     aria-label="Apply restock"
                     style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: '#D91A22',
-                      color: '#fff',
+                      background: 'var(--color-accent)',
+                      color: 'var(--color-on-accent)',
                       border: 'none',
                       borderRadius: '6px',
                       padding: '5px 7px',
@@ -139,7 +139,7 @@ export function InventoryPage() {
                   <button
                     onClick={() => setRestocking(null)}
                     aria-label="Cancel restock"
-                    style={{ display: 'inline-flex', alignItems: 'center', color: '#79767F', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                   >
                     <X size={15} strokeWidth={2} />
                   </button>
@@ -149,7 +149,7 @@ export function InventoryPage() {
                   onClick={() => { setRestocking(p.id ?? null); setRestockQty('') }}
                   style={{
                     fontSize: '11px',
-                    color: '#79767F',
+                    color: 'var(--color-muted)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',

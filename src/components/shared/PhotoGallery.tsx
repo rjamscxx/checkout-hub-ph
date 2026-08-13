@@ -16,7 +16,7 @@ export function PhotoGallery({ photos, aspectRatio = 'square' }: PhotoGalleryPro
     overflow: 'hidden',
     borderRadius: '8px 8px 0 0',
     aspectRatio: aspectRatio === 'square' ? '1 / 1' : '16 / 9',
-    background: '#F2F1EE',
+    background: 'var(--color-surface2)',
   }
 
   if (!photos.length) {
@@ -53,7 +53,7 @@ export function PhotoGallery({ photos, aspectRatio = 'square' }: PhotoGalleryPro
             <button
               key={i}
               onClick={() => setIdx(i)}
-              style={{ width: '6px', height: '6px', borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0, background: i === idx ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'background 0.15s' }}
+              style={{ width: '6px', height: '6px', borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0, background: i === idx ? 'var(--color-surface)' : 'rgba(255,255,255,0.5)', transition: 'background 0.15s' }}
             />
           ))}
         </div>

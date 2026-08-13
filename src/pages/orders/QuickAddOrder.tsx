@@ -49,7 +49,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
   return (
     <Sheet open={open} onClose={onClose}>
       <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h2 style={{ fontWeight: 700, color: '#18171A', fontSize: '18px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>New Order</h2>
+        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '18px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>New Order</h2>
 
         <Input
           label="Customer Name"
@@ -60,7 +60,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
         />
 
         <div>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: '#79767F', marginBottom: '8px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+          <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-muted)', marginBottom: '8px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             Items — tap to add
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '220px', overflowY: 'auto' }}>
@@ -72,8 +72,8 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
                   key={p.id}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px',
-                    borderRadius: '10px', border: `1px solid ${selected ? '#D91A22' : '#E6E3DC'}`,
-                    background: selected ? 'rgba(217,26,34,0.05)' : '#fff',
+                    borderRadius: '10px', border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                    background: selected ? 'var(--color-accent-dim)' : 'var(--color-surface)',
                     transition: 'all 0.15s',
                   }}
                 >
@@ -81,23 +81,23 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
                     style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     onClick={() => toggleProduct(p)}
                   >
-                    <p style={{ fontWeight: 500, color: '#18171A', fontSize: '14px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.name}</p>
-                    <p style={{ fontSize: '12px', color: '#D91A22', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(p.sellPrice)}</p>
+                    <p style={{ fontWeight: 500, color: 'var(--color-ink)', fontSize: '14px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.name}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--color-accent)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(p.sellPrice)}</p>
                   </button>
                   {item && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <button onClick={() => setQty(p.id!, item.qty - 1)}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid #E6E3DC', background: '#fff', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                       <span style={{ fontSize: '14px', fontWeight: 700, minWidth: '20px', textAlign: 'center', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{item.qty}</span>
                       <button onClick={() => setQty(p.id!, item.qty + 1)}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid #E6E3DC', background: '#fff', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                     </div>
                   )}
                 </div>
               )
             })}
             {!products.length && (
-              <p style={{ color: '#79767F', fontSize: '13px', textAlign: 'center', padding: '16px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>No products found. Add some in the Products tab.</p>
+              <p style={{ color: 'var(--color-muted)', fontSize: '13px', textAlign: 'center', padding: '16px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>No products found. Add some in the Products tab.</p>
             )}
           </div>
         </div>

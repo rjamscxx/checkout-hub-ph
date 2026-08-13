@@ -14,7 +14,7 @@ export function OrdersPage() {
   const rest = orders?.filter(o => o.status !== 'pending') ?? []
 
   const sectionLabel: React.CSSProperties = {
-    fontSize: '11px', fontWeight: 600, color: '#79767F',
+    fontSize: '11px', fontWeight: 600, color: 'var(--color-muted)',
     textTransform: 'uppercase', letterSpacing: '0.5px',
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: '0 0 8px',
   }
@@ -22,7 +22,7 @@ export function OrdersPage() {
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontWeight: 700, color: '#18171A', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Orders</h1>
+        <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Orders</h1>
         <Button size="sm" onClick={() => setAdding(true)}>New Order</Button>
       </div>
 

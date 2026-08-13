@@ -9,11 +9,11 @@ interface BadgeProps {
 }
 
 const BADGE_STYLES: Record<BadgeVariant, React.CSSProperties> = {
-  default: { background: '#F2F1EE', color: '#79767F' },
-  green:   { background: 'rgba(22,122,70,0.10)', color: '#167A46' },
-  red:     { background: 'rgba(217,26,34,0.10)', color: '#D91A22' },
-  gold:    { background: 'rgba(154,111,10,0.10)', color: '#9A6F0A' },
-  muted:   { background: '#F2F1EE', color: '#79767F' },
+  default: { background: 'var(--color-surface2)', color: 'var(--color-muted)' },
+  green:   { background: 'var(--color-green-dim)', color: 'var(--color-green)' },
+  red:     { background: 'var(--color-accent-dim)', color: 'var(--color-accent)' },
+  gold:    { background: 'var(--color-gold-dim)', color: 'var(--color-gold)' },
+  muted:   { background: 'var(--color-surface2)', color: 'var(--color-muted)' },
 }
 
 export function Badge({ children, variant = 'default', style }: BadgeProps) {

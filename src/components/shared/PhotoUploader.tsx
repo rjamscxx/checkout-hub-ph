@@ -34,7 +34,7 @@ export function PhotoUploader({ photos, onChange, max = 8 }: PhotoUploaderProps)
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {photos.map((src, i) => (
-          <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #E6E3DC', flexShrink: 0 }}>
+          <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-border)', flexShrink: 0 }}>
             <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <button
               onClick={() => onChange(photos.filter((_, j) => j !== i))}
@@ -55,7 +55,7 @@ export function PhotoUploader({ photos, onChange, max = 8 }: PhotoUploaderProps)
         )}
       </div>
       <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
-      <p style={{ fontSize: '11px', color: '#79767F', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: 0 }}>{photos.length}/{max} photos</p>
+      <p style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: 0 }}>{photos.length}/{max} photos</p>
     </div>
   )
 }

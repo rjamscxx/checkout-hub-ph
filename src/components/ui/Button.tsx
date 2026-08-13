@@ -11,10 +11,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const F = "'Plus Jakarta Sans', system-ui, sans-serif"
 
 const VARIANT_BASE: Record<Variant, React.CSSProperties> = {
-  primary: { background: '#D91A22', color: '#fff' },
-  ghost:   { background: 'transparent', color: '#79767F' },
-  danger:  { background: 'rgba(217,26,34,0.08)', color: '#D91A22', border: '1px solid rgba(217,26,34,0.22)' },
-  outline: { background: 'transparent', color: '#18171A', border: '1px solid #E6E3DC' },
+  primary: { background: 'var(--color-accent)', color: 'var(--color-on-accent)' },
+  ghost:   { background: 'transparent', color: 'var(--color-muted)' },
+  danger:  { background: 'var(--color-accent-dim)', color: 'var(--color-accent)', border: '1px solid var(--color-accent-dim)' },
+  outline: { background: 'transparent', color: 'var(--color-ink)', border: '1px solid var(--color-border)' },
 }
 
 const SIZE_STYLES: Record<Size, React.CSSProperties> = {
@@ -29,9 +29,9 @@ export function Button({ variant = 'primary', size = 'md', style, disabled, onMo
 
   const hoverOverride: React.CSSProperties = hovered && !disabled
     ? variant === 'primary'
-      ? { background: '#B8161E' }
+      ? { background: 'var(--color-accent-hover)' }
       : variant === 'ghost'
-      ? { background: '#F2F1EE', color: '#18171A' }
+      ? { background: 'var(--color-surface2)', color: 'var(--color-ink)' }
       : { opacity: 0.85 }
     : {}
 

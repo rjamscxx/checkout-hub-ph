@@ -10,6 +10,7 @@ import { color, font, shadow } from '../../lib/theme'
 export function SettingsPage() {
   const [storeName, setStoreName] = useState('')
   const [tagline, setTagline] = useState('')
+  const [orderContact, setOrderContact] = useState('')
   const [invoicePrefix, setInvoicePrefix] = useState('INV')
   const [marginFloor, setMarginFloor] = useState(String(DEFAULT_MARGIN_FLOOR))
   const [saved, setSaved] = useState(false)
@@ -18,6 +19,7 @@ export function SettingsPage() {
   useEffect(() => {
     getSetting('store_name', 'Checkout Hub').then(setStoreName)
     getSetting('store_tagline', '').then(setTagline)
+    getSetting('order_contact', '').then(setOrderContact)
     getSetting('invoice_prefix', 'INV').then(setInvoicePrefix)
     getSetting('margin_floor', String(DEFAULT_MARGIN_FLOOR)).then(setMarginFloor)
   }, [])
@@ -25,6 +27,7 @@ export function SettingsPage() {
   async function handleSave() {
     await setSetting('store_name', storeName)
     await setSetting('store_tagline', tagline)
+    await setSetting('order_contact', orderContact)
     await setSetting('invoice_prefix', invoicePrefix)
     await setSetting('margin_floor', String(Math.max(0, Math.min(100, Number(marginFloor) || 0))))
     window.dispatchEvent(new Event('settings-updated'))
@@ -64,6 +67,8 @@ export function SettingsPage() {
         <p style={sectionTitle}>Store</p>
         <Input label="Store name" value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="e.g. RJ General Merchandise" />
         <Input label="Tagline" value={tagline} onChange={e => setTagline(e.target.value)} placeholder="e.g. Legit online seller · Metro Manila" />
+        <Input label="Order contact" value={orderContact} onChange={e => setOrderContact(e.target.value)} placeholder="e.g. m.me/rjstore · 0917 000 0000" />
+        <p style={helper}>Shown on the customer catalog so buyers know how to reach you.</p>
         <Input label="Invoice prefix" value={invoicePrefix} onChange={e => setInvoicePrefix(e.target.value)} placeholder="INV" />
       </div>
 

@@ -15,6 +15,7 @@ export function CatalogPage() {
   const allProducts = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
   const storeName = useLiveQuery(() => getSetting('store_name', 'Checkout Hub')) ?? 'Checkout Hub'
   const tagline = useLiveQuery(() => getSetting('store_tagline', '')) ?? ''
+  const orderContact = useLiveQuery(() => getSetting('order_contact', '')) ?? ''
   const availableProducts = allProducts.filter(p => p.availableToday && p.stock > 0)
 
   return (
@@ -72,6 +73,7 @@ export function CatalogPage() {
             products={availableProducts}
             storeName={storeName}
             tagline={tagline}
+            orderContact={orderContact}
             onExit={() => setScreenshotMode(false)}
           />
         )}
