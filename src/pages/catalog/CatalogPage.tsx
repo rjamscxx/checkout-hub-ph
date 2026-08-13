@@ -40,7 +40,7 @@ export function CatalogPage() {
             message="Add products in the Products tab, mark them available, then share the view with customers."
           />
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px' }}>
             {allProducts.map(p => {
               const on = p.availableToday
               return (

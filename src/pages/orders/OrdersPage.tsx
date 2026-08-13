@@ -38,7 +38,7 @@ export function OrdersPage() {
       {pending.length > 0 && (
         <div>
           <p style={sectionLabel}>Pending ({pending.length})</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
             {pending.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>
@@ -47,7 +47,7 @@ export function OrdersPage() {
       {rest.length > 0 && (
         <div>
           <p style={sectionLabel}>History</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
             {rest.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>

@@ -29,9 +29,13 @@ export function ProductsPage() {
         />
       )}
 
-      {products?.map(p => (
-        <ProductListItem key={p.id} product={p} onEdit={() => setEditing(p)} />
-      ))}
+      {products && products.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: '10px', alignItems: 'start' }}>
+          {products.map(p => (
+            <ProductListItem key={p.id} product={p} onEdit={() => setEditing(p)} />
+          ))}
+        </div>
+      )}
 
       <ProductForm open={adding} onClose={() => setAdding(false)} />
       {editing && (

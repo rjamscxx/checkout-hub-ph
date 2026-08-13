@@ -34,7 +34,7 @@ export function InventoryPage() {
       <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Inventory</h1>
 
       {/* Alert summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(108px, 1fr))', gap: '8px' }}>
         <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
           <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-accent)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{outOfStock.length}</p>
           <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Out of Stock</p>
@@ -50,7 +50,7 @@ export function InventoryPage() {
       </div>
 
       {/* Full inventory list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '8px', alignItems: 'start' }}>
         {!products.length && (
           <EmptyState icon={Boxes} title="Nothing to track yet" message="Add products in the Products tab and their stock levels show up here." />
         )}

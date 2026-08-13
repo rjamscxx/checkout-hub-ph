@@ -73,7 +73,7 @@ export default function App() {
         )}
 
         <main style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <div style={{ maxWidth: '820px', margin: '0 auto', width: '100%' }}>
+          <div style={{ maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
             <Page />
           </div>
         </main>

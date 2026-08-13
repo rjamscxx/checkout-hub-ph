@@ -46,7 +46,7 @@ export function ProfitsPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
         {[
           { label: 'Revenue', value: formatPHP(totalRevenue), color: 'var(--color-ink)' },
           { label: 'Profit',  value: formatPHP(totalProfit),  color: 'var(--color-green)' },
@@ -61,7 +61,7 @@ export function ProfitsPage() {
       </div>
 
       {/* Profit log */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', alignItems: 'start' }}>
         {!profits.length && (
           <p style={{ color: 'var(--color-muted)', fontSize: '14px', textAlign: 'center', padding: '48px 16px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             No profit entries for this period.

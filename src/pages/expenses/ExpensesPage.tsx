@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { useExpenses, addExpense, deleteExpense } from '../../hooks/useExpenses'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -42,7 +43,7 @@ export function ExpensesPage() {
       </div>
 
       {/* Expense list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '8px', alignItems: 'start' }}>
         {!expenses.length && (
           <p style={{ color: 'var(--color-muted)', fontSize: '14px', textAlign: 'center', padding: '48px 16px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
             No expenses recorded yet.
@@ -60,8 +61,9 @@ export function ExpensesPage() {
               <span style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '15px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(e.amount)}</span>
               <button
                 onClick={() => e.id != null && deleteExpense(e.id)}
-                style={{ background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', fontSize: '18px', padding: '0 2px', lineHeight: 1 }}
-              >×</button>
+                aria-label="Delete expense"
+                style={{ display: 'grid', placeItems: 'center', background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', padding: '2px' }}
+              ><X size={16} strokeWidth={2} /></button>
             </div>
           </div>
         ))}
