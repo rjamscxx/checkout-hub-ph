@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, X, Boxes } from 'lucide-react'
+import { Check, X, Boxes, Plus } from 'lucide-react'
 import { db } from '../../db'
 import { Badge } from '../../components/ui/Badge'
+import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { updateProduct, toggleAvailableToday } from '../../hooks/useProducts'
 import { Page, PageHeader, StatGrid, StatCard } from '../../components/layout/Page'
-import { color, card } from '../../lib/theme'
+import { color, card, numeric } from '../../lib/theme'
 
 export function InventoryPage() {
   const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
@@ -33,7 +34,10 @@ export function InventoryPage() {
 
   return (
     <Page>
-      <PageHeader title="Inventory" />
+      <PageHeader
+        title="Inventory"
+        subtitle={`${products.length} product${products.length !== 1 ? 's' : ''} tracked`}
+      />
 
       {/* Alert summary — left-aligned metric tiles */}
       <StatGrid min={130}>
@@ -48,14 +52,14 @@ export function InventoryPage() {
           <EmptyState icon={Boxes} title="Nothing to track yet" message="Add products in the Products tab and their stock levels show up here." />
         )}
         {products.map(p => (
-          <div key={p.id} style={{ ...card, padding: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div key={p.id} style={{ ...card, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {p.name}
               </p>
               <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>{p.category}</p>
               {p.expiryDate && (
-                <p style={{ fontSize: '11px', color: color.gold, margin: '2px 0 0' }}>Exp: {p.expiryDate}</p>
+                <p style={{ fontSize: '11px', color: color.gold, margin: '2px 0 0', ...numeric }}>Exp: {p.expiryDate}</p>
               )}
             </div>
 
@@ -68,14 +72,14 @@ export function InventoryPage() {
                 onClick={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
                 aria-pressed={p.availableToday}
                 style={{
-                  fontSize: '11px', fontWeight: 600, padding: '4px 8px', borderRadius: '6px',
+                  fontSize: '12px', fontWeight: 600, padding: '5px 10px', borderRadius: '8px',
                   border: 'none', cursor: 'pointer',
                   background: p.availableToday ? color.greenDim : color.surface2,
                   color: p.availableToday ? color.green : color.muted,
                   transition: 'background 0.15s, color 0.15s',
                 }}
               >
-                {p.availableToday ? 'On' : 'Off'}
+                {p.availableToday ? 'Live' : 'Off'}
               </button>
 
               {restocking === p.id ? (
@@ -86,41 +90,30 @@ export function InventoryPage() {
                     value={restockQty}
                     onChange={e => setRestockQty(e.target.value)}
                     style={{
-                      width: '52px', fontSize: '13px', border: `1px solid ${color.border}`,
-                      borderRadius: '6px', padding: '4px 6px', background: color.surface2, outline: 'none',
+                      width: '56px', fontSize: '13px', ...numeric,
+                      border: `1px solid ${color.accent}`,
+                      borderRadius: '8px', padding: '5px 8px',
+                      background: color.surface, outline: 'none',
+                      color: color.ink,
                     }}
                     autoFocus
                     onKeyDown={e => e.key === 'Enter' && p.id != null && handleRestock(p.id)}
                   />
-                  <button
-                    onClick={() => p.id != null && handleRestock(p.id)}
-                    aria-label="Apply restock"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: color.accent, color: color.onAccent, border: 'none',
-                      borderRadius: '6px', padding: '5px 7px', cursor: 'pointer',
-                    }}
-                  >
-                    <Check size={15} strokeWidth={2.2} />
-                  </button>
-                  <button
-                    onClick={() => setRestocking(null)}
-                    aria-label="Cancel restock"
-                    style={{ display: 'inline-flex', alignItems: 'center', color: color.muted, background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                  >
-                    <X size={15} strokeWidth={2} />
-                  </button>
+                  <Button size="sm" onClick={() => p.id != null && handleRestock(p.id)} aria-label="Apply restock">
+                    <Check size={13} strokeWidth={2.4} />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setRestocking(null)} aria-label="Cancel">
+                    <X size={13} strokeWidth={2} />
+                  </Button>
                 </div>
               ) : (
-                <button
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => { setRestocking(p.id ?? null); setRestockQty('') }}
-                  style={{
-                    fontSize: '11px', color: color.muted, background: 'none', border: 'none',
-                    cursor: 'pointer', padding: '2px 4px',
-                  }}
                 >
-                  Restock
-                </button>
+                  <Plus size={13} strokeWidth={2} /> Restock
+                </Button>
               )}
             </div>
           </div>

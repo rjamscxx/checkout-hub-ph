@@ -30,7 +30,10 @@ export function ProfitsPage() {
 
   return (
     <Page>
-      <PageHeader title="Profits" />
+      <PageHeader
+        title="Profits"
+        subtitle={`${filter === 'today' ? "Today" : filter === 'week' ? "This week" : filter === 'month' ? "This month" : "All time"} · ${profits.length} sale${profits.length !== 1 ? 's' : ''}`}
+      />
 
       {/* Filter chips */}
       <div style={{ display: 'flex', gap: '6px' }}>
@@ -64,7 +67,7 @@ export function ProfitsPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '8px', alignItems: 'start' }}>
           {profits.map(p => (
-            <div key={p.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px' }}>
+            <div key={p.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Badge variant={sourceBadge[p.source] ?? 'muted'}>{p.source}</Badge>

@@ -71,10 +71,11 @@ export function SettingsPage() {
           onChange={e => setMarginFloor(e.target.value)}
         />
         <p style={helper}>Orders below this margin get flagged in amber so you never sell too cheap by accident.</p>
-        <Button onClick={handleSave} style={{ alignSelf: 'flex-start' }}>
-          {saved ? <><Check size={15} strokeWidth={2.4} /> Saved</> : 'Save settings'}
-        </Button>
       </Section>
+
+      <Button size="lg" onClick={handleSave} style={{ width: '100%' }}>
+        {saved ? <><Check size={15} strokeWidth={2.4} /> Saved</> : 'Save settings'}
+      </Button>
 
       <Section title="Data backup">
         <p style={helper}>Export a JSON file with all your products, orders, profits, and expenses. Import it anytime to restore.</p>

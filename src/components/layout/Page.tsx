@@ -6,6 +6,22 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { color, card, numeric, space } from '../../lib/theme'
 
+/* ---- SectionLabel -------------------------------------------------------- */
+
+/** Standalone group label for grids that don't need a card wrapper. */
+export function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p
+      style={{
+        fontSize: '11px', fontWeight: 700, color: color.muted,
+        textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0,
+      }}
+    >
+      {children}
+    </p>
+  )
+}
+
 /* ---- Page ------------------------------------------------------------- */
 
 interface PageProps {
@@ -95,7 +111,7 @@ const sectionTitle: CSSProperties = {
 /** A titled surface card — the recipe Settings/Reports/Expenses had each rebuilt. */
 export function Section({ title, children, style }: SectionProps) {
   return (
-    <div style={{ ...card, padding: space[4], display: 'flex', flexDirection: 'column', gap: space[3], ...style }}>
+    <div style={{ ...card, padding: space[5], display: 'flex', flexDirection: 'column', gap: space[3], ...style }}>
       {title && <p style={sectionTitle}>{title}</p>}
       {children}
     </div>
@@ -125,7 +141,7 @@ const TONE: Record<Tone, string> = {
 export function StatCard({ label, value, tone = 'ink' }: { label: string; value: string | number; tone?: Tone }) {
   return (
     <div style={{ ...card, padding: space[3], display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-      <span style={{ fontSize: '12px', color: color.muted }}>{label}</span>
+      <span style={{ fontSize: '13px', color: color.muted }}>{label}</span>
       <span
         style={{
           fontSize: '22px',

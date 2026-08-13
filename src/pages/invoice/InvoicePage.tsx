@@ -1,8 +1,9 @@
 import { useState, type CSSProperties } from 'react'
+import { X } from 'lucide-react'
 import type { InvoiceItem } from '../../db'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { Page, PageHeader } from '../../components/layout/Page'
+import { Page, PageHeader, Section } from '../../components/layout/Page'
 import { addInvoice } from '../../hooks/useInvoices'
 import { printInvoice } from './InvoicePrint'
 import { formatPHP, genInvoiceNo } from '../../lib/utils'
@@ -40,7 +41,7 @@ export function InvoicePage() {
   }
 
   const itemRowStyle: CSSProperties = {
-    display: 'grid', gridTemplateColumns: '1fr 52px 80px 28px', gap: '6px', alignItems: 'end', marginBottom: '8px',
+    display: 'grid', gridTemplateColumns: '1fr 52px 80px 28px', gap: '6px', alignItems: 'end',
   }
   const totalRow: CSSProperties = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', fontSize: '14px' }
 
@@ -51,22 +52,23 @@ export function InvoicePage() {
       <Input label="Customer Name *" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Customer name" />
 
       {/* Line items */}
-      <div>
-        <p style={{ fontSize: '12px', fontWeight: 500, color: color.muted, margin: '0 0 8px' }}>Line Items</p>
+      <Section title="Line items">
         {items.map((item, idx) => (
           <div key={idx} style={itemRowStyle}>
             <Input placeholder="Description" value={item.description} onChange={e => setItem(idx, 'description', e.target.value)} />
             <Input type="number" min="1" placeholder="Qty" value={item.qty} onChange={e => setItem(idx, 'qty', Number(e.target.value))} />
-            <Input type="number" min="0" placeholder="Price" value={item.price} onChange={e => setItem(idx, 'price', Number(e.target.value))} />
+            <Input type="number" min="0" placeholder="Price ₱" value={item.price} onChange={e => setItem(idx, 'price', Number(e.target.value))} />
             <button
               onClick={() => removeItem(idx)}
               aria-label={`Remove line ${idx + 1}`}
-              style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: color.muted, cursor: 'pointer', fontSize: '18px' }}
-            >×</button>
+              style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: color.muted, cursor: 'pointer', borderRadius: '6px' }}
+            >
+              <X size={16} strokeWidth={2} />
+            </button>
           </div>
         ))}
-        <Button size="sm" variant="ghost" onClick={addItem}>Add Line</Button>
-      </div>
+        <Button size="sm" variant="ghost" onClick={addItem} style={{ alignSelf: 'flex-start' }}>+ Add line</Button>
+      </Section>
 
       {/* Totals */}
       <div style={{ background: color.surface2, borderRadius: radius.md, padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>

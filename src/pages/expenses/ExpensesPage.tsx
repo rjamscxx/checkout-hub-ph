@@ -4,8 +4,8 @@ import { useExpenses, addExpense, deleteExpense } from '../../hooks/useExpenses'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { EmptyState } from '../../components/shared/EmptyState'
-import { Page, PageHeader, Section } from '../../components/layout/Page'
-import { color, numeric, card } from '../../lib/theme'
+import { Page, PageHeader, Section, StatGrid, StatCard } from '../../components/layout/Page'
+import { color, numeric, card, column } from '../../lib/theme'
 import { formatPHP, todayISO } from '../../lib/utils'
 
 export function ExpensesPage() {
@@ -24,7 +24,7 @@ export function ExpensesPage() {
   }
 
   return (
-    <Page>
+    <Page maxWidth={column.form}>
       <PageHeader title="Expenses" />
 
       {/* Add form */}
@@ -39,10 +39,9 @@ export function ExpensesPage() {
       </Section>
 
       {/* Total */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', margin: 0 }}>Total Expenses</p>
-        <p style={{ fontWeight: 700, color: color.accent, fontSize: '18px', margin: 0, ...numeric }}>{formatPHP(total)}</p>
-      </div>
+      <StatGrid min={200}>
+        <StatCard label="Total Expenses" value={formatPHP(total)} tone="accent" />
+      </StatGrid>
 
       {/* Expense list */}
       {!expenses.length ? (
@@ -50,7 +49,7 @@ export function ExpensesPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '8px', alignItems: 'start' }}>
           {expenses.map(e => (
-            <div key={e.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px' }}>
+            <div key={e.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontWeight: 500, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.description}</p>
                 <p style={{ fontSize: '11px', color: color.muted, margin: '2px 0 0' }}>

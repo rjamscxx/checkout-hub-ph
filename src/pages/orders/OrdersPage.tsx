@@ -5,8 +5,12 @@ import { OrderCard } from './OrderCard'
 import { QuickAddOrder } from './QuickAddOrder'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
-import { Page, PageHeader } from '../../components/layout/Page'
-import { color } from '../../lib/theme'
+import { Page, PageHeader, SectionLabel } from '../../components/layout/Page'
+
+const GRID: CSSProperties = {
+  display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+  gap: '10px', alignItems: 'start',
+}
 
 export function OrdersPage() {
   const orders = useOrders()
@@ -14,15 +18,6 @@ export function OrdersPage() {
 
   const pending = orders?.filter(o => o.status === 'pending') ?? []
   const rest = orders?.filter(o => o.status !== 'pending') ?? []
-
-  const sectionLabel: CSSProperties = {
-    fontSize: '11px', fontWeight: 600, color: color.muted,
-    textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px',
-  }
-  const grid: CSSProperties = {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: '10px', alignItems: 'start',
-  }
 
   return (
     <Page>
@@ -41,18 +36,18 @@ export function OrdersPage() {
       )}
 
       {pending.length > 0 && (
-        <div>
-          <p style={sectionLabel}>Pending ({pending.length})</p>
-          <div style={grid}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <SectionLabel>Pending ({pending.length})</SectionLabel>
+          <div style={GRID}>
             {pending.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>
       )}
 
       {rest.length > 0 && (
-        <div>
-          <p style={sectionLabel}>History</p>
-          <div style={grid}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <SectionLabel>History</SectionLabel>
+          <div style={GRID}>
             {rest.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>
