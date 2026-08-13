@@ -7,8 +7,9 @@ import { CatalogCard } from './CatalogCard'
 import { ScreenshotMode } from './ScreenshotMode'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
+import { Page, PageHeader } from '../../components/layout/Page'
 import { toggleAvailableToday } from '../../hooks/useProducts'
-import { color, font, numeric } from '../../lib/theme'
+import { color, numeric } from '../../lib/theme'
 
 export function CatalogPage() {
   const [screenshotMode, setScreenshotMode] = useState(false)
@@ -20,18 +21,18 @@ export function CatalogPage() {
 
   return (
     <>
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
-          <div>
-            <h1 style={{ fontWeight: 700, color: color.ink, fontSize: '22px', margin: 0, fontFamily: font, letterSpacing: '-0.02em', textWrap: 'balance' }}>Today's Catalog</h1>
-            <p style={{ fontSize: '13px', color: color.muted, margin: '3px 0 0', fontFamily: font }}>
-              <span style={numeric}>{availableProducts.length}</span> of <span style={numeric}>{allProducts.length}</span> item{allProducts.length !== 1 ? 's' : ''} live today
-            </p>
-          </div>
-          <Button onClick={() => setScreenshotMode(true)} disabled={availableProducts.length === 0}>
-            <Share2 size={15} strokeWidth={1.9} /> Share View
-          </Button>
-        </div>
+      <Page>
+        <PageHeader
+          title="Today's Catalog"
+          subtitle={
+            <><span style={numeric}>{availableProducts.length}</span> of <span style={numeric}>{allProducts.length}</span> item{allProducts.length !== 1 ? 's' : ''} live today</>
+          }
+          action={
+            <Button onClick={() => setScreenshotMode(true)} disabled={availableProducts.length === 0}>
+              <Share2 size={15} strokeWidth={1.9} /> Share View
+            </Button>
+          }
+        />
 
         {allProducts.length === 0 ? (
           <EmptyState
@@ -52,7 +53,7 @@ export function CatalogPage() {
                     style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                       fontSize: '12px', fontWeight: 600, borderRadius: '8px', padding: '7px',
-                      border: 'none', cursor: 'pointer', transition: 'background 0.15s, color 0.15s', fontFamily: font,
+                      border: 'none', cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                       background: on ? color.greenDim : color.surface2,
                       color: on ? color.green : color.muted,
                     }}
@@ -65,7 +66,7 @@ export function CatalogPage() {
             })}
           </div>
         )}
-      </div>
+      </Page>
 
       <AnimatePresence>
         {screenshotMode && (

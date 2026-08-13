@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Package } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { ProductListItem } from './ProductListItem'
 import { ProductForm } from './ProductForm'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
-import { color, font } from '../../lib/theme'
+import { Page, PageHeader } from '../../components/layout/Page'
 import type { Product } from '../../db'
 
 export function ProductsPage() {
@@ -14,11 +14,11 @@ export function ProductsPage() {
   const [adding, setAdding] = useState(false)
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontWeight: 700, color: color.ink, fontSize: '20px', margin: 0, fontFamily: font, letterSpacing: '-0.02em' }}>Products</h1>
-        <Button size="sm" onClick={() => setAdding(true)}>Add Product</Button>
-      </div>
+    <Page>
+      <PageHeader
+        title="Products"
+        action={<Button size="sm" onClick={() => setAdding(true)}>Add Product</Button>}
+      />
 
       {!products?.length && (
         <EmptyState
@@ -30,7 +30,7 @@ export function ProductsPage() {
       )}
 
       {products && products.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: '10px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
           {products.map(p => (
             <ProductListItem key={p.id} product={p} onEdit={() => setEditing(p)} />
           ))}
@@ -41,6 +41,6 @@ export function ProductsPage() {
       {editing && (
         <ProductForm product={editing} open={true} onClose={() => setEditing(null)} />
       )}
-    </div>
+    </Page>
   )
 }

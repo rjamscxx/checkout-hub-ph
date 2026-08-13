@@ -48,3 +48,22 @@ export const numeric: CSSProperties = {
   fontFeatureSettings: "'tnum'",
   letterSpacing: '-0.01em',
 }
+
+/**
+ * One surface recipe for every card, stat tile, section, and list row.
+ * Replaces the hand-rolled bg/border/radius/shadow that had drifted
+ * (12px vs 14px radius, inline boxShadow strings) across the pages.
+ */
+export const card: CSSProperties = {
+  background: color.surface,
+  border: `1px solid ${color.border}`,
+  borderRadius: radius.lg - 2, // 14 — the app-wide card corner
+  boxShadow: shadow.sm,
+}
+
+/**
+ * Shared content-column widths for single-stack pages so forms and
+ * summaries stop stretching full-bleed on wide screens — capped and
+ * left-anchored (never centered).
+ */
+export const column = { form: 720, prose: 640 } as const

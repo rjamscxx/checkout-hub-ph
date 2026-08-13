@@ -5,6 +5,8 @@ import { db } from '../../db'
 import { Badge } from '../../components/ui/Badge'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { updateProduct, toggleAvailableToday } from '../../hooks/useProducts'
+import { Page, PageHeader, StatGrid, StatCard } from '../../components/layout/Page'
+import { color, card } from '../../lib/theme'
 
 export function InventoryPage() {
   const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
@@ -30,24 +32,15 @@ export function InventoryPage() {
   }
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Inventory</h1>
+    <Page>
+      <PageHeader title="Inventory" />
 
-      {/* Alert summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(108px, 1fr))', gap: '8px' }}>
-        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-accent)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{outOfStock.length}</p>
-          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Out of Stock</p>
-        </div>
-        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-gold)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{lowStock.length}</p>
-          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Low Stock</p>
-        </div>
-        <div style={{ background: 'var(--color-surface)', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)' }}>
-          <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-ink)', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{expiringSoon.length}</p>
-          <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Expiring Soon</p>
-        </div>
-      </div>
+      {/* Alert summary — left-aligned metric tiles */}
+      <StatGrid min={130}>
+        <StatCard label="Out of Stock" value={outOfStock.length} tone="accent" />
+        <StatCard label="Low Stock" value={lowStock.length} tone="gold" />
+        <StatCard label="Expiring Soon" value={expiringSoon.length} tone="ink" />
+      </StatGrid>
 
       {/* Full inventory list */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '8px', alignItems: 'start' }}>
@@ -55,26 +48,14 @@ export function InventoryPage() {
           <EmptyState icon={Boxes} title="Nothing to track yet" message="Add products in the Products tab and their stock levels show up here." />
         )}
         {products.map(p => (
-          <div
-            key={p.id}
-            style={{
-              background: 'var(--color-surface)',
-              borderRadius: '12px',
-              border: '1px solid var(--color-border)',
-              boxShadow: '0 1px 3px rgba(var(--shadow-tint),0.07), 0 1px 2px rgba(var(--shadow-tint),0.04)',
-              padding: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
+          <div key={p.id} style={{ ...card, padding: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: 'var(--color-ink)', fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+              <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {p.name}
               </p>
-              <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.category}</p>
+              <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>{p.category}</p>
               {p.expiryDate && (
-                <p style={{ fontSize: '11px', color: 'var(--color-gold)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Exp: {p.expiryDate}</p>
+                <p style={{ fontSize: '11px', color: color.gold, margin: '2px 0 0' }}>Exp: {p.expiryDate}</p>
               )}
             </div>
 
@@ -85,17 +66,13 @@ export function InventoryPage() {
 
               <button
                 onClick={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
+                aria-pressed={p.availableToday}
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-                  background: p.availableToday ? 'var(--color-green-dim)' : 'var(--color-surface2)',
-                  color: p.availableToday ? 'var(--color-green)' : 'var(--color-muted)',
-                  transition: 'all 0.15s',
+                  fontSize: '11px', fontWeight: 600, padding: '4px 8px', borderRadius: '6px',
+                  border: 'none', cursor: 'pointer',
+                  background: p.availableToday ? color.greenDim : color.surface2,
+                  color: p.availableToday ? color.green : color.muted,
+                  transition: 'background 0.15s, color 0.15s',
                 }}
               >
                 {p.availableToday ? 'On' : 'Off'}
@@ -109,14 +86,8 @@ export function InventoryPage() {
                     value={restockQty}
                     onChange={e => setRestockQty(e.target.value)}
                     style={{
-                      width: '52px',
-                      fontSize: '13px',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '6px',
-                      padding: '4px 6px',
-                      background: 'var(--color-surface2)',
-                      outline: 'none',
-                      fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                      width: '52px', fontSize: '13px', border: `1px solid ${color.border}`,
+                      borderRadius: '6px', padding: '4px 6px', background: color.surface2, outline: 'none',
                     }}
                     autoFocus
                     onKeyDown={e => e.key === 'Enter' && p.id != null && handleRestock(p.id)}
@@ -126,12 +97,8 @@ export function InventoryPage() {
                     aria-label="Apply restock"
                     style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'var(--color-accent)',
-                      color: 'var(--color-on-accent)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '5px 7px',
-                      cursor: 'pointer',
+                      background: color.accent, color: color.onAccent, border: 'none',
+                      borderRadius: '6px', padding: '5px 7px', cursor: 'pointer',
                     }}
                   >
                     <Check size={15} strokeWidth={2.2} />
@@ -139,7 +106,7 @@ export function InventoryPage() {
                   <button
                     onClick={() => setRestocking(null)}
                     aria-label="Cancel restock"
-                    style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--color-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', color: color.muted, background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                   >
                     <X size={15} strokeWidth={2} />
                   </button>
@@ -148,13 +115,8 @@ export function InventoryPage() {
                 <button
                   onClick={() => { setRestocking(p.id ?? null); setRestockQty('') }}
                   style={{
-                    fontSize: '11px',
-                    color: 'var(--color-muted)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+                    fontSize: '11px', color: color.muted, background: 'none', border: 'none',
+                    cursor: 'pointer', padding: '2px 4px',
                   }}
                 >
                   Restock
@@ -164,6 +126,6 @@ export function InventoryPage() {
           </div>
         ))}
       </div>
-    </div>
+    </Page>
   )
 }

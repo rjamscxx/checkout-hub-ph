@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import { OrderCard } from './OrderCard'
 import { QuickAddOrder } from './QuickAddOrder'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
+import { Page, PageHeader } from '../../components/layout/Page'
+import { color } from '../../lib/theme'
 
 export function OrdersPage() {
   const orders = useOrders()
@@ -13,18 +15,21 @@ export function OrdersPage() {
   const pending = orders?.filter(o => o.status === 'pending') ?? []
   const rest = orders?.filter(o => o.status !== 'pending') ?? []
 
-  const sectionLabel: React.CSSProperties = {
-    fontSize: '11px', fontWeight: 600, color: 'var(--color-muted)',
-    textTransform: 'uppercase', letterSpacing: '0.5px',
-    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: '0 0 8px',
+  const sectionLabel: CSSProperties = {
+    fontSize: '11px', fontWeight: 600, color: color.muted,
+    textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px',
+  }
+  const grid: CSSProperties = {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '10px', alignItems: 'start',
   }
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Orders</h1>
-        <Button size="sm" onClick={() => setAdding(true)}>New Order</Button>
-      </div>
+    <Page>
+      <PageHeader
+        title="Orders"
+        action={<Button size="sm" onClick={() => setAdding(true)}>New Order</Button>}
+      />
 
       {!orders?.length && (
         <EmptyState
@@ -38,7 +43,7 @@ export function OrdersPage() {
       {pending.length > 0 && (
         <div>
           <p style={sectionLabel}>Pending ({pending.length})</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
+          <div style={grid}>
             {pending.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>
@@ -47,13 +52,13 @@ export function OrdersPage() {
       {rest.length > 0 && (
         <div>
           <p style={sectionLabel}>History</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
+          <div style={grid}>
             {rest.map(o => <OrderCard key={o.id} order={o} />)}
           </div>
         </div>
       )}
 
       <QuickAddOrder open={adding} onClose={() => setAdding(false)} />
-    </div>
+    </Page>
   )
 }

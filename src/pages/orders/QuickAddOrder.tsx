@@ -49,7 +49,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
   return (
     <Sheet open={open} onClose={onClose}>
       <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h2 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '18px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>New Order</h2>
+        <h2 style={{ fontWeight: 700, color: color.ink, fontSize: '18px', margin: 0, letterSpacing: '-0.02em' }}>New Order</h2>
 
         <Input
           label="Customer Name"
@@ -60,7 +60,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
         />
 
         <div>
-          <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-muted)', marginBottom: '8px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+          <p style={{ fontSize: '12px', fontWeight: 500, color: color.muted, marginBottom: '8px' }}>
             Items — tap to add
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '220px', overflowY: 'auto' }}>
@@ -81,14 +81,14 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
                     style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     onClick={() => toggleProduct(p)}
                   >
-                    <p style={{ fontWeight: 500, color: 'var(--color-ink)', fontSize: '14px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{p.name}</p>
-                    <p style={{ fontSize: '12px', color: 'var(--color-accent)', margin: '2px 0 0', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(p.sellPrice)}</p>
+                    <p style={{ fontWeight: 500, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                    <p style={{ fontSize: '12px', color: color.accent, margin: '2px 0 0', ...numeric }}>{formatPHP(p.sellPrice)}</p>
                   </button>
                   {item && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <button onClick={() => setQty(p.id!, item.qty - 1)}
                         style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                      <span style={{ fontSize: '14px', fontWeight: 700, minWidth: '20px', textAlign: 'center', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>{item.qty}</span>
+                      <span style={{ fontSize: '14px', fontWeight: 700, minWidth: '20px', textAlign: 'center', ...numeric }}>{item.qty}</span>
                       <button onClick={() => setQty(p.id!, item.qty + 1)}
                         style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                     </div>
@@ -97,7 +97,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
               )
             })}
             {!products.length && (
-              <p style={{ color: 'var(--color-muted)', fontSize: '13px', textAlign: 'center', padding: '16px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>No products found. Add some in the Products tab.</p>
+              <p style={{ color: color.muted, fontSize: '13px', textAlign: 'center', padding: '16px' }}>No products found. Add some in the Products tab.</p>
             )}
           </div>
         </div>
@@ -105,7 +105,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
         <Input label="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Delivery instructions, etc." />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: `1px solid ${color.border}` }}>
-          <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+          <div>
             <div>
               <span style={{ fontSize: '14px', color: color.muted }}>Total: </span>
               <span style={{ fontSize: '18px', fontWeight: 700, color: color.accent, ...numeric }}>{formatPHP(total)}</span>

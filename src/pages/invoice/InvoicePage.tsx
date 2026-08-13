@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { InvoiceItem } from '../../db'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { Page, PageHeader } from '../../components/layout/Page'
 import { addInvoice } from '../../hooks/useInvoices'
 import { printInvoice } from './InvoicePrint'
 import { formatPHP, genInvoiceNo } from '../../lib/utils'
+import { color, numeric, radius, column } from '../../lib/theme'
 
 const EMPTY_ITEM: InvoiceItem = { description: '', qty: 1, price: 0 }
 
@@ -28,38 +30,29 @@ export function InvoicePage() {
   async function handleSave() {
     if (!customerName.trim() || !items.some(i => i.description.trim())) return
     const validItems = items.filter(i => i.description.trim())
-    const invoice = {
-      customerName: customerName.trim(),
-      items: validItems,
-      subtotal,
-      discount,
-      total,
-      paidVia,
-      notes,
-    }
+    const invoice = { customerName: customerName.trim(), items: validItems, subtotal, discount, total, paidVia, notes }
     await addInvoice(invoice)
-    // Print immediately after save
     printInvoice({
       invoice: { ...invoice, id: 0, invoiceNo: genInvoiceNo('INV'), createdAt: new Date().toISOString() },
       storeName: 'Checkout Hub PH',
     })
-    // Reset form
     setCustomerName(''); setItems([{ ...EMPTY_ITEM }]); setDiscount(0); setPaidVia(''); setNotes('')
   }
 
-  const itemRowStyle: React.CSSProperties = {
+  const itemRowStyle: CSSProperties = {
     display: 'grid', gridTemplateColumns: '1fr 52px 80px 28px', gap: '6px', alignItems: 'end', marginBottom: '8px',
   }
+  const totalRow: CSSProperties = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', fontSize: '14px' }
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <h1 style={{ fontWeight: 700, color: 'var(--color-ink)', fontSize: '20px', margin: 0, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: '-0.02em' }}>Invoice</h1>
+    <Page maxWidth={column.form}>
+      <PageHeader title="Invoice" />
 
       <Input label="Customer Name *" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Customer name" />
 
       {/* Line items */}
       <div>
-        <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-muted)', margin: '0 0 8px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Line Items</p>
+        <p style={{ fontSize: '12px', fontWeight: 500, color: color.muted, margin: '0 0 8px' }}>Line Items</p>
         {items.map((item, idx) => (
           <div key={idx} style={itemRowStyle}>
             <Input placeholder="Description" value={item.description} onChange={e => setItem(idx, 'description', e.target.value)} />
@@ -67,7 +60,8 @@ export function InvoicePage() {
             <Input type="number" min="0" placeholder="Price" value={item.price} onChange={e => setItem(idx, 'price', Number(e.target.value))} />
             <button
               onClick={() => removeItem(idx)}
-              style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', fontSize: '18px' }}
+              aria-label={`Remove line ${idx + 1}`}
+              style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: color.muted, cursor: 'pointer', fontSize: '18px' }}
             >×</button>
           </div>
         ))}
@@ -75,21 +69,22 @@ export function InvoicePage() {
       </div>
 
       {/* Totals */}
-      <div style={{ background: 'var(--color-surface2)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
-          <span style={{ color: 'var(--color-muted)' }}>Subtotal</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(subtotal)}</span>
+      <div style={{ background: color.surface2, borderRadius: radius.md, padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={totalRow}>
+          <span style={{ color: color.muted }}>Subtotal</span>
+          <span style={numeric}>{formatPHP(subtotal)}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '14px', gap: '8px' }}>
-          <span style={{ color: 'var(--color-muted)', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>Discount ₱</span>
+        <div style={{ ...totalRow, gap: '8px' }}>
+          <span style={{ color: color.muted }}>Discount ₱</span>
           <input
             type="number" min="0" value={discount} onChange={e => setDiscount(Number(e.target.value))}
-            style={{ width: '90px', textAlign: 'right', background: 'transparent', border: 'none', borderBottom: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: 'var(--color-ink)', padding: '2px 0', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}
+            aria-label="Discount amount"
+            style={{ width: '90px', textAlign: 'right', background: 'transparent', border: 'none', borderBottom: `1px solid ${color.border}`, fontSize: '14px', outline: 'none', color: color.ink, padding: '2px 0', ...numeric }}
           />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '16px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        <div style={{ ...totalRow, fontWeight: 700, fontSize: '16px', paddingTop: '10px', borderTop: `1px solid ${color.border}` }}>
           <span>Total</span>
-          <span style={{ color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>{formatPHP(total)}</span>
+          <span style={{ color: color.accent, ...numeric }}>{formatPHP(total)}</span>
         </div>
       </div>
 
@@ -104,6 +99,6 @@ export function InvoicePage() {
       >
         Save & Print
       </Button>
-    </div>
+    </Page>
   )
 }

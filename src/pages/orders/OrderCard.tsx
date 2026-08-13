@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { formatPHP, formatDate } from '../../lib/utils'
 import { markOrderPaid, updateOrderStatus, deleteOrder, orderProfit, orderMargin, useMarginFloor } from '../../hooks/useOrders'
-import { color, numeric, shadow } from '../../lib/theme'
+import { color, numeric, card } from '../../lib/theme'
 
 type BadgeVariant = 'gold' | 'green' | 'muted'
 const STATUS_VARIANT: Record<Order['status'], BadgeVariant> = {
@@ -13,8 +13,6 @@ const STATUS_VARIANT: Record<Order['status'], BadgeVariant> = {
   paid: 'green',
   done: 'muted',
 }
-
-const F = "'Plus Jakarta Sans', system-ui, sans-serif"
 
 export function OrderCard({ order }: { order: Order }) {
   const [confirmDel, setConfirmDel] = useState(false)
@@ -26,31 +24,31 @@ export function OrderCard({ order }: { order: Order }) {
   const realized = order.status !== 'pending'
 
   return (
-    <div style={{ background: color.surface, borderRadius: '12px', border: `1px solid ${color.border}`, boxShadow: shadow.sm, padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ ...card, padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 600, color: color.ink, fontSize: '15px', margin: 0, fontFamily: F }}>{order.customerName}</p>
-          <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0', fontFamily: F, ...numeric }}>{order.ref} · {formatDate(order.createdAt)}</p>
+          <p style={{ fontWeight: 600, color: color.ink, fontSize: '15px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.customerName}</p>
+          <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0', ...numeric }}>{order.ref} · {formatDate(order.createdAt)}</p>
         </div>
         <Badge variant={STATUS_VARIANT[order.status]}>{order.status}</Badge>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {order.items.map((item, i) => (
-          <p key={i} style={{ fontSize: '12px', color: color.muted, margin: 0, fontFamily: F }}>
+          <p key={i} style={{ fontSize: '12px', color: color.muted, margin: 0 }}>
             {item.name} × {item.qty} = <span style={numeric}>{formatPHP(item.price * item.qty)}</span>
           </p>
         ))}
         {order.notes && (
-          <p style={{ fontSize: '12px', color: color.muted, margin: '4px 0 0', fontStyle: 'italic', fontFamily: F }}>{order.notes}</p>
+          <p style={{ fontSize: '12px', color: color.muted, margin: '4px 0 0', fontStyle: 'italic' }}>{order.notes}</p>
         )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '8px', paddingTop: '8px', borderTop: `1px solid ${color.border}` }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 700, color: color.accent, fontSize: '16px', fontFamily: F, ...numeric }}>{formatPHP(order.total)}</div>
+          <div style={{ fontWeight: 700, color: color.accent, fontSize: '16px', ...numeric }}>{formatPHP(order.total)}</div>
           {hasCost && (
-            <div style={{ fontSize: '11px', color: profitColor, fontWeight: 600, marginTop: '1px', fontFamily: F, ...numeric }}>
+            <div style={{ fontSize: '11px', color: profitColor, fontWeight: 600, marginTop: '1px', ...numeric }}>
               {realized ? '' : '~'}{profit < 0 ? 'loss ' : 'profit '}{formatPHP(profit)} · {margin}%
             </div>
           )}

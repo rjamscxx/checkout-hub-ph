@@ -59,7 +59,7 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
         </div>
         <Input label="Stock Qty" type="number" min="0" value={form.stock} onChange={e => set('stock', Number(e.target.value))} />
         <Input label="Expiry Date (optional)" type="date" value={form.expiryDate ?? ''} onChange={e => set('expiryDate', e.target.value || undefined)} />
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-ink)', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-ink)', cursor: 'pointer' }}>
           <input type="checkbox" checked={form.availableToday} onChange={e => set('availableToday', e.target.checked)}
             style={{ accentColor: 'var(--color-accent)', width: '16px', height: '16px' }} />
           Available Today
