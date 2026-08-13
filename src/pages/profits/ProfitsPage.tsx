@@ -3,7 +3,7 @@ import { TrendingUp } from 'lucide-react'
 import { useProfits } from '../../hooks/useProfits'
 import { Badge } from '../../components/ui/Badge'
 import { EmptyState } from '../../components/shared/EmptyState'
-import { Page, PageHeader, StatGrid, StatCard } from '../../components/layout/Page'
+import { Page, PageHeader, StatGrid, StatCard, ContentFrame } from '../../components/layout/Page'
 import { color, card, numeric } from '../../lib/theme'
 import { formatPHP, formatDateShort } from '../../lib/utils'
 
@@ -62,24 +62,26 @@ export function ProfitsPage() {
       </StatGrid>
 
       {/* Profit log */}
-      {!profits.length ? (
-        <EmptyState icon={TrendingUp} title="No profit yet for this period" message="Paid orders and invoices land here. Switch the filter or log a sale to see profit build up." />
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '8px', alignItems: 'start' }}>
-          {profits.map(p => (
-            <div key={p.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Badge variant={sourceBadge[p.source] ?? 'muted'}>{p.source}</Badge>
-                  <span style={{ fontSize: '12px', color: color.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.ref}</span>
+      <ContentFrame>
+        {!profits.length ? (
+          <EmptyState icon={TrendingUp} title="No profit yet for this period" message="Paid orders and invoices land here. Switch the filter or log a sale to see profit build up." />
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '8px', alignItems: 'start' }}>
+            {profits.map(p => (
+              <div key={p.id} style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Badge variant={sourceBadge[p.source] ?? 'muted'}>{p.source}</Badge>
+                    <span style={{ fontSize: '12px', color: color.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.ref}</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: color.muted, margin: '3px 0 0' }}>{formatDateShort(p.date)}</p>
                 </div>
-                <p style={{ fontSize: '11px', color: color.muted, margin: '3px 0 0' }}>{formatDateShort(p.date)}</p>
+                <span style={{ fontWeight: 700, color: color.green, fontSize: '15px', flexShrink: 0, ...numeric }}>{formatPHP(p.profit)}</span>
               </div>
-              <span style={{ fontWeight: 700, color: color.green, fontSize: '15px', flexShrink: 0, ...numeric }}>{formatPHP(p.profit)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </ContentFrame>
     </Page>
   )
 }

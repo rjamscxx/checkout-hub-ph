@@ -4,7 +4,7 @@
  * of each page hand-rolling its own. Elements are left-anchored, not centered.
  */
 import type { CSSProperties, ReactNode } from 'react'
-import { color, card, numeric, space } from '../../lib/theme'
+import { color, card, numeric, space, radius } from '../../lib/theme'
 
 /* ---- SectionLabel -------------------------------------------------------- */
 
@@ -113,6 +113,37 @@ export function Section({ title, children, style }: SectionProps) {
   return (
     <div style={{ ...card, padding: space[5], display: 'flex', flexDirection: 'column', gap: space[3], ...style }}>
       {title && <p style={sectionTitle}>{title}</p>}
+      {children}
+    </div>
+  )
+}
+
+/* ---- ContentFrame ----------------------------------------------------- */
+
+interface ContentFrameProps {
+  children: ReactNode
+  padding?: number | string
+  minHeight?: number
+}
+
+/**
+ * Bordered content panel — always visible regardless of whether data exists.
+ * Use it to wrap grids, lists, and empty states so every tab has visual weight.
+ */
+export function ContentFrame({ children, padding = space[3], minHeight = 320 }: ContentFrameProps) {
+  return (
+    <div
+      style={{
+        background: color.surface2,
+        border: `1px solid ${color.border}`,
+        borderRadius: radius.lg,
+        padding,
+        minHeight,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: space[3],
+      }}
+    >
       {children}
     </div>
   )

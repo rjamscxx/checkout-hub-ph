@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { updateProduct, toggleAvailableToday } from '../../hooks/useProducts'
-import { Page, PageHeader, StatGrid, StatCard } from '../../components/layout/Page'
+import { Page, PageHeader, StatGrid, StatCard, ContentFrame } from '../../components/layout/Page'
 import { color, card, numeric } from '../../lib/theme'
 
 export function InventoryPage() {
@@ -47,10 +47,11 @@ export function InventoryPage() {
       </StatGrid>
 
       {/* Full inventory list */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '8px', alignItems: 'start' }}>
+      <ContentFrame padding={products.length ? 12 : 0}>
         {!products.length && (
           <EmptyState icon={Boxes} title="Nothing to track yet" message="Add products in the Products tab and their stock levels show up here." />
         )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '8px', alignItems: 'start' }}>
         {products.map(p => (
           <div key={p.id} style={{ ...card, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -118,7 +119,8 @@ export function InventoryPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      </ContentFrame>
     </Page>
   )
 }
