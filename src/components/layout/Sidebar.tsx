@@ -1,5 +1,5 @@
 import {
-  LayoutGrid, ShoppingBag, Package, Boxes, FileText,
+  Home, LayoutGrid, ShoppingBag, Package, Boxes, FileText,
   TrendingUp, Wallet, BarChart3, Settings2, Sun, Moon,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -7,12 +7,13 @@ import { color, font, shadow } from '../../lib/theme'
 import type { Theme } from '../../hooks/useTheme'
 
 export type TabId =
-  | 'catalog' | 'orders' | 'products' | 'inventory' | 'invoice'
+  | 'home' | 'catalog' | 'orders' | 'products' | 'inventory' | 'invoice'
   | 'profits' | 'expenses' | 'reports' | 'settings'
 
 interface NavItem { id: TabId; label: string; Icon: LucideIcon }
 
 export const NAV: NavItem[] = [
+  { id: 'home',      label: 'Home',      Icon: Home        },
   { id: 'catalog',   label: 'Catalog',   Icon: LayoutGrid  },
   { id: 'orders',    label: 'Orders',    Icon: ShoppingBag },
   { id: 'products',  label: 'Products',  Icon: Package     },

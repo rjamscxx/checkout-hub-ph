@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, Sun, Moon } from 'lucide-react'
 import { Sidebar, type TabId } from './components/layout/Sidebar'
+import { HomePage }      from './pages/home/HomePage'
 import { CatalogPage }   from './pages/catalog/CatalogPage'
 import { OrdersPage }    from './pages/orders/OrdersPage'
 import { ProductsPage }  from './pages/products/ProductsPage'
@@ -17,6 +18,7 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 import { color, font } from './lib/theme'
 
 const PAGE_MAP: Record<TabId, React.ComponentType> = {
+  home:      HomePage,
   catalog:   CatalogPage,
   orders:    OrdersPage,
   products:  ProductsPage,
@@ -31,7 +33,7 @@ const PAGE_MAP: Record<TabId, React.ComponentType> = {
 export default function App() {
   const { theme, toggle } = useTheme()
   const isDesktop = useMediaQuery('(min-width: 900px)')
-  const [tab, setTab] = useState<TabId>('catalog')
+  const [tab, setTab] = useState<TabId>('home')
   const [drawer, setDrawer] = useState(false)
   const [storeName, setStoreName] = useState('Checkout Hub')
   const Page = PAGE_MAP[tab]
