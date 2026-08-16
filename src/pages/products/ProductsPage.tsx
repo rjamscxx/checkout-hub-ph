@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Package } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
+import { Package, Truck } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { ProductListItem } from './ProductListItem'
 import { ProductForm } from './ProductForm'
+import { SupplierDrop } from './SupplierDrop'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { Page, PageHeader, ContentFrame } from '../../components/layout/Page'
@@ -12,12 +14,21 @@ export function ProductsPage() {
   const products = useProducts()
   const [editing, setEditing] = useState<Product | null>(null)
   const [adding, setAdding] = useState(false)
+  const [dropping, setDropping] = useState(false)
 
   return (
+    <>
     <Page>
       <PageHeader
         title="Products"
-        action={<Button size="sm" onClick={() => setAdding(true)}>Add Product</Button>}
+        action={
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Button size="sm" variant="outline" onClick={() => setDropping(true)}>
+              <Truck size={13} strokeWidth={1.9} /> Supplier Drop
+            </Button>
+            <Button size="sm" onClick={() => setAdding(true)}>Add Product</Button>
+          </div>
+        }
       />
 
       <ContentFrame>
@@ -44,5 +55,10 @@ export function ProductsPage() {
         <ProductForm product={editing} open={true} onClose={() => setEditing(null)} />
       )}
     </Page>
+
+    <AnimatePresence>
+      {dropping && <SupplierDrop onClose={() => setDropping(false)} />}
+    </AnimatePresence>
+    </>
   )
 }
