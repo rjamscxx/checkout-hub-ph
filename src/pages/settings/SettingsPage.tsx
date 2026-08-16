@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Check, Download, Upload } from 'lucide-react'
+import { Check, Download, Upload, X } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Page, PageHeader, Section } from '../../components/layout/Page'
@@ -14,8 +14,12 @@ export function SettingsPage() {
   const [orderContact, setOrderContact] = useState('')
   const [invoicePrefix, setInvoicePrefix] = useState('INV')
   const [marginFloor, setMarginFloor] = useState(String(DEFAULT_MARGIN_FLOOR))
+  const [gcashQr, setGcashQr] = useState('')
+  const [mayaQr, setMayaQr] = useState('')
   const [saved, setSaved] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
+  const gcashRef = useRef<HTMLInputElement>(null)
+  const mayaRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getSetting('store_name', 'Checkout Hub').then(setStoreName)
@@ -23,7 +27,20 @@ export function SettingsPage() {
     getSetting('order_contact', '').then(setOrderContact)
     getSetting('invoice_prefix', 'INV').then(setInvoicePrefix)
     getSetting('margin_floor', String(DEFAULT_MARGIN_FLOOR)).then(setMarginFloor)
+    getSetting('gcash_qr', '').then(setGcashQr)
+    getSetting('maya_qr', '').then(setMayaQr)
   }, [])
+
+  function handleQrUpload(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = ev => setter(ev.target?.result as string ?? '')
+      reader.readAsDataURL(file)
+      e.target.value = ''
+    }
+  }
 
   async function handleSave() {
     await setSetting('store_name', storeName)
@@ -31,6 +48,8 @@ export function SettingsPage() {
     await setSetting('order_contact', orderContact)
     await setSetting('invoice_prefix', invoicePrefix)
     await setSetting('margin_floor', String(Math.max(0, Math.min(100, Number(marginFloor) || 0))))
+    await setSetting('gcash_qr', gcashQr)
+    await setSetting('maya_qr', mayaQr)
     window.dispatchEvent(new Event('settings-updated'))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -71,6 +90,42 @@ export function SettingsPage() {
           onChange={e => setMarginFloor(e.target.value)}
         />
         <p style={helper}>Orders below this margin get flagged in amber so you never sell too cheap by accident.</p>
+      </Section>
+
+      <Section title="Payment QR Codes">
+        <p style={helper}>Upload your GCash and Maya QR codes — they'll appear on printed invoices so customers can scan to pay.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          {(['gcash', 'maya'] as const).map(method => {
+            const label = method === 'gcash' ? 'GCash QR' : 'Maya QR'
+            const qr = method === 'gcash' ? gcashQr : mayaQr
+            const setter = method === 'gcash' ? setGcashQr : setMayaQr
+            const ref = method === 'gcash' ? gcashRef : mayaRef
+            return (
+              <div key={method} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: color.muted, margin: 0 }}>{label}</p>
+                {qr ? (
+                  <div style={{ position: 'relative', display: 'inline-flex' }}>
+                    <img src={qr} alt={label} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'contain', borderRadius: '8px', border: `1px solid ${color.border}`, background: '#fff' }} />
+                    <button
+                      onClick={() => setter('')}
+                      aria-label={`Remove ${label}`}
+                      style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: color.accent, color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                    ><X size={12} strokeWidth={2.5} /></button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => ref.current?.click()}
+                    style={{ width: '100%', aspectRatio: '1/1', borderRadius: '8px', border: `1.5px dashed ${color.border}`, background: color.surface2, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', color: color.muted, fontSize: '12px', fontWeight: 500 }}
+                  >
+                    <Upload size={20} strokeWidth={1.5} />
+                    Upload
+                  </button>
+                )}
+                <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleQrUpload(setter)} />
+              </div>
+            )
+          })}
+        </div>
       </Section>
 
       <Button size="lg" onClick={handleSave} style={{ width: '100%' }}>

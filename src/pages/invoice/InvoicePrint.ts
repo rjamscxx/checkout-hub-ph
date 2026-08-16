@@ -6,9 +6,11 @@ interface PrintInvoiceOptions {
   storeName: string
   storePhone?: string
   storeAddress?: string
+  gcashQr?: string
+  mayaQr?: string
 }
 
-export function printInvoice({ invoice, storeName, storePhone = '', storeAddress = '' }: PrintInvoiceOptions): void {
+export function printInvoice({ invoice, storeName, storePhone = '', storeAddress = '', gcashQr = '', mayaQr = '' }: PrintInvoiceOptions): void {
   const itemRows = invoice.items
     .map(i => `<tr>
       <td style="padding:5px 0;border-bottom:1px solid var(--color-surface2);font-size:12px">${i.description}</td>
@@ -68,6 +70,14 @@ export function printInvoice({ invoice, storeName, storePhone = '', storeAddress
     <div class="total-row grand-total"><span>Total</span><span>${formatPHP(invoice.total)}</span></div>
   </div>
   ${invoice.paidVia ? `<div class="paid-via">Paid via: ${invoice.paidVia}</div>` : ''}
+  ${gcashQr || mayaQr ? `
+  <div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee">
+    <p style="font-size:11px;color:#888;margin-bottom:8px;text-align:center">Scan to pay</p>
+    <div style="display:flex;justify-content:center;gap:16px">
+      ${gcashQr ? `<div style="text-align:center"><img src="${gcashQr}" style="width:90px;height:90px;object-fit:contain" /><p style="font-size:10px;font-weight:700;margin:4px 0 0;color:#555">GCash</p></div>` : ''}
+      ${mayaQr ? `<div style="text-align:center"><img src="${mayaQr}" style="width:90px;height:90px;object-fit:contain" /><p style="font-size:10px;font-weight:700;margin:4px 0 0;color:#555">Maya</p></div>` : ''}
+    </div>
+  </div>` : ''}
   ${invoice.notes ? `<div class="footer">${invoice.notes}</div>` : ''}
   <div class="footer">Thank you for your business!</div>
 </body>

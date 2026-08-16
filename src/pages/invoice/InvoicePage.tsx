@@ -1,6 +1,7 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { X } from 'lucide-react'
 import type { InvoiceItem } from '../../db'
+import { getSetting } from '../../db'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Page, PageHeader, Section } from '../../components/layout/Page'
@@ -17,6 +18,15 @@ export function InvoicePage() {
   const [discount, setDiscount] = useState(0)
   const [paidVia, setPaidVia] = useState('')
   const [notes, setNotes] = useState('')
+  const [gcashQr, setGcashQr] = useState('')
+  const [mayaQr, setMayaQr] = useState('')
+  const [storeName, setStoreName] = useState('Checkout Hub')
+
+  useEffect(() => {
+    getSetting('gcash_qr', '').then(setGcashQr)
+    getSetting('maya_qr', '').then(setMayaQr)
+    getSetting('store_name', 'Checkout Hub').then(setStoreName)
+  }, [])
 
   const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0)
   const total = Math.max(0, subtotal - discount)
@@ -35,7 +45,9 @@ export function InvoicePage() {
     await addInvoice(invoice)
     printInvoice({
       invoice: { ...invoice, id: 0, invoiceNo: genInvoiceNo('INV'), createdAt: new Date().toISOString() },
-      storeName: 'Checkout Hub PH',
+      storeName,
+      gcashQr,
+      mayaQr,
     })
     setCustomerName(''); setItems([{ ...EMPTY_ITEM }]); setDiscount(0); setPaidVia(''); setNotes('')
   }
@@ -92,6 +104,26 @@ export function InvoicePage() {
 
       <Input label="Paid Via" value={paidVia} onChange={e => setPaidVia(e.target.value)} placeholder="GCash, Cash, Maya, etc." />
       <Input label="Notes / Footer" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional note on the invoice" />
+
+      {(gcashQr || mayaQr) && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ fontSize: '12px', fontWeight: 600, color: color.muted, margin: 0 }}>Payment QR (will print on invoice)</p>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {gcashQr && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <img src={gcashQr} alt="GCash QR" style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '6px', border: `1px solid ${color.border}`, background: '#fff' }} />
+                <span style={{ fontSize: '10px', fontWeight: 600, color: color.muted }}>GCash</span>
+              </div>
+            )}
+            {mayaQr && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <img src={mayaQr} alt="Maya QR" style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '6px', border: `1px solid ${color.border}`, background: '#fff' }} />
+                <span style={{ fontSize: '10px', fontWeight: 600, color: color.muted }}>Maya</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <Button
         size="lg"

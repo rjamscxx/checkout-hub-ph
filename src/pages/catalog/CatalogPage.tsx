@@ -19,6 +19,15 @@ export function CatalogPage() {
   const orderContact = useLiveQuery(() => getSetting('order_contact', '')) ?? ''
   const availableProducts = allProducts.filter(p => p.availableToday && p.stock > 0)
 
+  const grouped = allProducts.reduce<Record<string, typeof allProducts>>((acc, p) => {
+    const cat = p.category?.trim() || 'Uncategorized'
+    ;(acc[cat] ??= []).push(p)
+    return acc
+  }, {})
+  const categories = Object.keys(grouped).sort((a, b) =>
+    a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
+  )
+
   return (
     <>
       <Page>
@@ -42,29 +51,38 @@ export function CatalogPage() {
               message="Add products in the Products tab, mark them available, then share the view with customers."
             />
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px' }}>
-              {allProducts.map(p => {
-                const on = p.availableToday
-                return (
-                  <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <CatalogCard product={p} mode="edit" />
-                    <button
-                      onClick={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
-                      aria-pressed={on}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                        fontSize: '12px', fontWeight: 600, borderRadius: '8px', padding: '7px',
-                        border: 'none', cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                        background: on ? color.greenDim : color.surface,
-                        color: on ? color.green : color.muted,
-                      }}
-                    >
-                      {on ? <Check size={14} strokeWidth={2.4} /> : <Plus size={14} strokeWidth={2.2} />}
-                      {on ? 'Available today' : 'Set available'}
-                    </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {categories.map(cat => (
+                <div key={cat}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: color.muted, textTransform: 'uppercase', marginBottom: '10px' }}>
+                    {cat}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px' }}>
+                    {grouped[cat].map(p => {
+                      const on = p.availableToday
+                      return (
+                        <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <CatalogCard product={p} mode="edit" />
+                          <button
+                            onClick={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
+                            aria-pressed={on}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                              fontSize: '12px', fontWeight: 600, borderRadius: '8px', padding: '7px',
+                              border: 'none', cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
+                              background: on ? color.greenDim : color.surface,
+                              color: on ? color.green : color.muted,
+                            }}
+                          >
+                            {on ? <Check size={14} strokeWidth={2.4} /> : <Plus size={14} strokeWidth={2.2} />}
+                            {on ? 'Available today' : 'Set available'}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
           )}
         </ContentFrame>

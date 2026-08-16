@@ -31,6 +31,16 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
   const slug = (storeName || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'store'
   const fileBase = `${slug}-catalog-${now.toISOString().slice(0, 10)}`
 
+  const grouped = products.reduce<Record<string, typeof products>>((acc, p) => {
+    const cat = p.category?.trim() || 'Uncategorized'
+    ;(acc[cat] ??= []).push(p)
+    return acc
+  }, {})
+  const categories = Object.keys(grouped).sort((a, b) =>
+    a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
+  )
+  const showCategories = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
+
   async function run(kind: Busy, fn: () => Promise<unknown>) {
     if (busy) return
     setBusy(kind)
@@ -72,25 +82,23 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
             <span style={{ flex: 1, height: '1px', background: color.border }} />
           </div>
 
-          {/* Product grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '13px' }}>
-            {products.map(p => {
-              const photo = p.photos[0]
-              return (
-                <article key={p.id} style={{ background: color.surface, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${color.border}`, boxShadow: shadow.sm }}>
-                  <div style={{ aspectRatio: '1 / 1', background: color.surface2, display: 'grid', placeItems: 'center', color: color.border2 }}>
-                    {photo
-                      ? <img src={photo} alt={p.name} crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <ImageOff size={26} strokeWidth={1.5} />}
+          {/* Product grid — grouped by category when multiple exist */}
+          {showCategories ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {categories.map(cat => (
+                <div key={cat}>
+                  <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em', color: color.muted, textTransform: 'uppercase', margin: '0 0 10px', fontFamily: font }}>{cat}</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '13px' }}>
+                    {grouped[cat].map(p => <ProductCard key={p.id} p={p} />)}
                   </div>
-                  <div style={{ padding: '11px 12px 13px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: color.ink, margin: 0, lineHeight: 1.3, fontFamily: font, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.name}</p>
-                    <span style={{ fontSize: '17px', fontWeight: 800, color: color.accent, fontFamily: font, ...numeric }}>{formatPHP(p.sellPrice)}</span>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '13px' }}>
+              {products.map(p => <ProductCard key={p.id} p={p} />)}
+            </div>
+          )}
 
           {/* Order CTA */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px', padding: '15px 16px', borderRadius: '15px', background: color.accentDim, border: `1px solid ${color.border}` }}>
@@ -123,6 +131,23 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
         </div>
       </div>
     </motion.div>
+  )
+}
+
+function ProductCard({ p }: { p: import('../../db').Product }) {
+  const photo = p.photos[0]
+  return (
+    <article style={{ background: color.surface, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${color.border}`, boxShadow: shadow.sm }}>
+      <div style={{ aspectRatio: '1 / 1', background: color.surface2, display: 'grid', placeItems: 'center', color: color.border2 }}>
+        {photo
+          ? <img src={photo} alt={p.name} crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <ImageOff size={26} strokeWidth={1.5} />}
+      </div>
+      <div style={{ padding: '11px 12px 13px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: color.ink, margin: 0, lineHeight: 1.3, fontFamily: font, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.name}</p>
+        <span style={{ fontSize: '17px', fontWeight: 800, color: color.accent, fontFamily: font, ...numeric }}>{formatPHP(p.sellPrice)}</span>
+      </div>
+    </article>
   )
 }
 

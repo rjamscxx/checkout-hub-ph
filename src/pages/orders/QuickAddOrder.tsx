@@ -27,6 +27,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
   const profitColor = profit <= 0 ? color.accent : margin < floor ? color.gold : color.green
 
   function toggleProduct(p: Product) {
+    if ((p.stock ?? 0) <= 0) return
     setItems(prev => {
       const exists = prev.find(i => i.productId === p.id)
       if (exists) return prev.filter(i => i.productId !== p.id)
@@ -34,9 +35,10 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
     })
   }
 
-  function setQty(productId: number, qty: number) {
+  function setQty(productId: number, qty: number, maxStock: number) {
     if (qty < 1) return
-    setItems(prev => prev.map(i => i.productId === productId ? { ...i, qty } : i))
+    const capped = Math.min(qty, maxStock)
+    setItems(prev => prev.map(i => i.productId === productId ? { ...i, qty: capped } : i))
   }
 
   async function handleSave() {
@@ -67,30 +69,41 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
             {products.map(p => {
               const item = items.find(i => i.productId === p.id!)
               const selected = !!item
+              const outOfStock = (p.stock ?? 0) <= 0
+              const atMax = item ? item.qty >= (p.stock ?? 0) : false
               return (
                 <div
                   key={p.id}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px',
                     borderRadius: '10px', border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    background: selected ? 'var(--color-accent-dim)' : 'var(--color-surface)',
+                    background: selected ? 'var(--color-accent-dim)' : outOfStock ? 'var(--color-surface2)' : 'var(--color-surface)',
+                    opacity: outOfStock ? 0.55 : 1,
                     transition: 'all 0.15s',
                   }}
                 >
                   <button
-                    style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: outOfStock ? 'default' : 'pointer', padding: 0 }}
                     onClick={() => toggleProduct(p)}
+                    disabled={outOfStock}
                   >
                     <p style={{ fontWeight: 500, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
-                    <p style={{ fontSize: '12px', color: color.accent, margin: '2px 0 0', ...numeric }}>{formatPHP(p.sellPrice)}</p>
+                    <p style={{ fontSize: '12px', margin: '2px 0 0', ...numeric }}>
+                      <span style={{ color: color.accent }}>{formatPHP(p.sellPrice)}</span>
+                      <span style={{ color: outOfStock ? color.accent : color.muted, marginLeft: '6px' }}>
+                        {outOfStock ? '· Out of stock' : `· ${p.stock} in stock`}
+                      </span>
+                    </p>
                   </button>
                   {item && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                      <button onClick={() => setQty(p.id!, item.qty - 1)}
+                      <button onClick={() => setQty(p.id!, item.qty - 1, p.stock ?? 0)}
                         style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                       <span style={{ fontSize: '14px', fontWeight: 700, minWidth: '20px', textAlign: 'center', ...numeric }}>{item.qty}</span>
-                      <button onClick={() => setQty(p.id!, item.qty + 1)}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                      <button
+                        onClick={() => setQty(p.id!, item.qty + 1, p.stock ?? 0)}
+                        disabled={atMax}
+                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: '16px', cursor: atMax ? 'default' : 'pointer', opacity: atMax ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                     </div>
                   )}
                 </div>
