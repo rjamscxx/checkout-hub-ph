@@ -53,6 +53,7 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
         <Input label="Product Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Shampoo Rejoice 140ml" />
         <Input label="Description" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Variant info, size, etc." />
         <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Personal Care" />
+        <Input label="Supplier" value={form.supplier ?? ''} onChange={e => set('supplier', e.target.value)} placeholder="e.g. Supplier A · Ate Nena" />
         <div style={gridTwo}>
           <Input label="Cost Price ₱" type="number" min="0" step="0.01" value={form.costPrice} onChange={e => set('costPrice', Number(e.target.value))} />
           <Input label="Sell Price ₱" type="number" min="0" step="0.01" value={form.sellPrice} onChange={e => set('sellPrice', Number(e.target.value))} />

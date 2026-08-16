@@ -15,6 +15,7 @@ interface DropItem {
   photo: string
   name: string
   category: string
+  supplier: string
   costPrice: number
   sellPrice: number
   stock: number
@@ -41,6 +42,7 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
 
   const [items, setItems] = useState<DropItem[]>([])
   const [globalCategory, setGlobalCategory] = useState('')
+  const [globalSupplier, setGlobalSupplier] = useState('')
   const [defaultStock, setDefaultStock] = useState(50)
   const [dragging, setDragging] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -62,6 +64,7 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
           photo: ev.target?.result as string,
           name: rawName,
           category: globalCategory,
+          supplier: globalSupplier,
           costPrice: 0,
           sellPrice: 0,
           stock: defaultStock,
@@ -93,6 +96,11 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
     setItems(prev => prev.map(i => ({ ...i, category: cat })))
   }
 
+  function applyGlobalSupplier(sup: string) {
+    setGlobalSupplier(sup)
+    setItems(prev => prev.map(i => ({ ...i, supplier: sup })))
+  }
+
   function applyDefaultStock(qty: number) {
     setDefaultStock(qty)
     setItems(prev => prev.map(i => ({ ...i, stock: qty })))
@@ -107,6 +115,7 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
         name: item.name.trim(),
         description: '',
         category: item.category.trim(),
+        supplier: item.supplier.trim() || undefined,
         costPrice: item.costPrice,
         sellPrice: item.sellPrice,
         stock: item.stock,
@@ -187,12 +196,18 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
         </div>
 
         {/* Global settings */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'end' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end' }}>
           <Input
-            label="Category for all items"
+            label="Category for all"
             value={globalCategory}
             onChange={e => applyGlobalCategory(e.target.value)}
-            placeholder="e.g. Personal Care · Food · Clothes"
+            placeholder="e.g. Personal Care"
+          />
+          <Input
+            label="Supplier for all"
+            value={globalSupplier}
+            onChange={e => applyGlobalSupplier(e.target.value)}
+            placeholder="e.g. Supplier A"
           />
           <div>
             <p style={{ fontSize: '12px', fontWeight: 600, color: color.muted, margin: '0 0 4px' }}>Default stock</p>
@@ -287,17 +302,21 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
                     }}
                   />
 
-                  {/* Category */}
-                  <input
-                    value={item.category}
-                    onChange={e => updateItem(item.id, 'category', e.target.value)}
-                    placeholder="Category"
-                    style={{
-                      ...fieldLine,
-                      fontSize: '12px', color: color.muted,
-                      borderBottom: `1px solid ${color.border}`,
-                    }}
-                  />
+                  {/* Category · Supplier */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      value={item.category}
+                      onChange={e => updateItem(item.id, 'category', e.target.value)}
+                      placeholder="Category"
+                      style={{ ...fieldLine, flex: 1, fontSize: '12px', color: color.muted, borderBottom: `1px solid ${color.border}` }}
+                    />
+                    <input
+                      value={item.supplier}
+                      onChange={e => updateItem(item.id, 'supplier', e.target.value)}
+                      placeholder="Supplier"
+                      style={{ ...fieldLine, flex: 1, fontSize: '12px', color: color.muted, borderBottom: `1px solid ${color.border}` }}
+                    />
+                  </div>
 
                   {/* Cost → Sell */}
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>

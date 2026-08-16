@@ -5,6 +5,7 @@ export interface Product {
   name: string
   description: string
   category: string
+  supplier?: string
   costPrice: number
   sellPrice: number
   stock: number

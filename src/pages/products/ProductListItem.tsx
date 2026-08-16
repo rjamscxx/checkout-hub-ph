@@ -24,7 +24,9 @@ export function ProductListItem({ product, onEdit }: ProductListItemProps) {
       }
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{product.name}</p>
-        <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>{product.category}</p>
+        <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>
+          {[product.category, product.supplier].filter(Boolean).join(' · ')}
+        </p>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
           <span style={{ fontSize: '14px', fontWeight: 700, color: color.accent, ...numeric }}>{formatPHP(product.sellPrice)}</span>
           <span style={{ fontSize: '11px', color: color.muted, ...numeric }}>cost {formatPHP(product.costPrice)}</span>

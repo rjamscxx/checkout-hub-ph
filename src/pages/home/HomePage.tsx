@@ -107,12 +107,19 @@ export function HomePage() {
                         size={15} strokeWidth={2}
                         style={{ flexShrink: 0, color: out ? color.accent : color.gold }}
                       />
-                      <span style={{
-                        fontSize: '14px', fontWeight: 500, color: color.ink,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {p.name}
-                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <span style={{
+                          fontSize: '14px', fontWeight: 500, color: color.ink,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                        }}>
+                          {p.name}
+                        </span>
+                        {p.supplier && (
+                          <span style={{ fontSize: '11px', color: color.muted, display: 'block' }}>
+                            {p.supplier}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span style={{
                       fontSize: '13px', fontWeight: 700, flexShrink: 0, marginLeft: '12px',

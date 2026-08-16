@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Camera, Check, Plus, Share2 } from 'lucide-react'
+import { Camera, Check, ClipboardCopy, Plus, Share2 } from 'lucide-react'
 import { db, getSetting } from '../../db'
 import { CatalogCard } from './CatalogCard'
 import { ScreenshotMode } from './ScreenshotMode'
@@ -10,9 +10,42 @@ import { EmptyState } from '../../components/shared/EmptyState'
 import { Page, PageHeader, ContentFrame } from '../../components/layout/Page'
 import { toggleAvailableToday } from '../../hooks/useProducts'
 import { color, numeric } from '../../lib/theme'
+import { formatPHP } from '../../lib/utils'
+
+function buildPricelist(storeName: string, tagline: string, orderContact: string, categories: string[], grouped: Record<string, { name: string; sellPrice: number }[]>): string {
+  const date = new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+  const lines: string[] = []
+  lines.push(`📦 ${storeName}`)
+  if (tagline) lines.push(tagline)
+  lines.push(`✅ Available Today — ${date}`)
+  lines.push('')
+  for (const cat of categories) {
+    if (categories.length > 1 || cat !== 'Uncategorized') lines.push(`${cat}:`)
+    for (const p of grouped[cat]) {
+      lines.push(`• ${p.name} — ${formatPHP(p.sellPrice)}`)
+    }
+    lines.push('')
+  }
+  lines.push('📩 Message us to order!')
+  if (orderContact) lines.push(orderContact)
+  return lines.join('\n').trim()
+}
 
 export function CatalogPage() {
   const [screenshotMode, setScreenshotMode] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  async function copyPricelist() {
+    const text = buildPricelist(storeName, tagline, orderContact, categories.filter(c => grouped[c]?.length), grouped)
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
   const allProducts = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
   const storeName = useLiveQuery(() => getSetting('store_name', 'Checkout Hub')) ?? 'Checkout Hub'
   const tagline = useLiveQuery(() => getSetting('store_tagline', '')) ?? ''
@@ -37,9 +70,15 @@ export function CatalogPage() {
             <><span style={numeric}>{availableProducts.length}</span> of <span style={numeric}>{allProducts.length}</span> item{allProducts.length !== 1 ? 's' : ''} live today</>
           }
           action={
-            <Button onClick={() => setScreenshotMode(true)} disabled={availableProducts.length === 0}>
-              <Share2 size={15} strokeWidth={1.9} /> Share View
-            </Button>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <Button variant="outline" onClick={copyPricelist} disabled={availableProducts.length === 0}>
+                {copied ? <Check size={14} strokeWidth={2.4} /> : <ClipboardCopy size={14} strokeWidth={1.9} />}
+                {copied ? 'Copied!' : 'Copy Text'}
+              </Button>
+              <Button onClick={() => setScreenshotMode(true)} disabled={availableProducts.length === 0}>
+                <Share2 size={15} strokeWidth={1.9} /> Share View
+              </Button>
+            </div>
           }
         />
 

@@ -12,6 +12,7 @@ import { ProfitsPage }   from './pages/profits/ProfitsPage'
 import { ExpensesPage }  from './pages/expenses/ExpensesPage'
 import { ReportsPage }   from './pages/reports/ReportsPage'
 import { SettingsPage }  from './pages/settings/SettingsPage'
+import { CustomersPage } from './pages/customers/CustomersPage'
 import { getSetting } from './db'
 import { useTheme } from './hooks/useTheme'
 import { useMediaQuery } from './hooks/useMediaQuery'
@@ -21,6 +22,7 @@ const PAGE_MAP: Record<TabId, React.ComponentType> = {
   home:      HomePage,
   catalog:   CatalogPage,
   orders:    OrdersPage,
+  customers: CustomersPage,
   products:  ProductsPage,
   inventory: InventoryPage,
   invoice:   InvoicePage,
