@@ -5,7 +5,7 @@ import { Input } from '../../components/ui/Input'
 import { Textarea } from '../../components/ui/Textarea'
 import { Button } from '../../components/ui/Button'
 import { PhotoUploader } from '../../components/shared/PhotoUploader'
-import { addProduct, updateProduct } from '../../hooks/useProducts'
+import { addProduct, updateProduct, useProducts } from '../../hooks/useProducts'
 
 interface ProductFormProps {
   product?: Product
@@ -21,6 +21,9 @@ const EMPTY: FormState = {
 }
 
 export function ProductForm({ product, open, onClose }: ProductFormProps) {
+  const products = useProducts()
+  const categories = Array.from(new Set((products ?? []).map(p => p.category?.trim()).filter(Boolean))).sort()
+
   const [form, setForm] = useState<FormState>(
     product
       ? { name: product.name, description: product.description, category: product.category,
@@ -53,7 +56,10 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
         <PhotoUploader photos={form.photos} onChange={p => set('photos', p)} />
         <Input label="Product Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Shampoo Rejoice 140ml" />
         <Textarea label="Description" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Variant info, size, etc." />
-        <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Personal Care" />
+        <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Personal Care" list="category-options" />
+        <datalist id="category-options">
+          {categories.map(cat => <option key={cat} value={cat} />)}
+        </datalist>
         <Input label="Supplier" value={form.supplier ?? ''} onChange={e => set('supplier', e.target.value)} placeholder="e.g. Supplier A · Ate Nena" />
         <div style={gridTwo}>
           <Input label="Cost Price ₱" type="number" min="0" step="0.01" value={form.costPrice || ''} onChange={e => set('costPrice', Number(e.target.value) || 0)} />
