@@ -50,7 +50,9 @@ export function ProductsPage() {
         )}
       </ContentFrame>
 
-      <ProductForm open={adding} onClose={() => setAdding(false)} />
+      {adding && (
+        <ProductForm open={true} onClose={() => setAdding(false)} />
+      )}
       {editing && (
         <ProductForm product={editing} open={true} onClose={() => setEditing(null)} />
       )}
