@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { Product } from '../../db'
 import { Dialog } from '../../components/ui/Dialog'
 import { Input } from '../../components/ui/Input'
+import { Textarea } from '../../components/ui/Textarea'
 import { Button } from '../../components/ui/Button'
 import { PhotoUploader } from '../../components/shared/PhotoUploader'
 import { addProduct, updateProduct } from '../../hooks/useProducts'
@@ -51,7 +52,7 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
       <div style={fieldGap}>
         <PhotoUploader photos={form.photos} onChange={p => set('photos', p)} />
         <Input label="Product Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Shampoo Rejoice 140ml" />
-        <Input label="Description" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Variant info, size, etc." />
+        <Textarea label="Description" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Variant info, size, etc." />
         <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Personal Care" />
         <Input label="Supplier" value={form.supplier ?? ''} onChange={e => set('supplier', e.target.value)} placeholder="e.g. Supplier A · Ate Nena" />
         <div style={gridTwo}>
