@@ -17,10 +17,15 @@ function toBase64(file: File): Promise<string> {
   })
 }
 
+function isFileDrag(e: React.DragEvent) {
+  return Array.from(e.dataTransfer.types).includes('Files')
+}
+
 export function PhotoUploader({ photos, onChange, max = 15 }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
+  const [fileOver, setFileOver] = useState(false)
 
   async function handleFiles(files: FileList | null) {
     if (!files) return
@@ -44,7 +49,22 @@ export function PhotoUploader({ photos, onChange, max = 15 }: PhotoUploaderProps
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <div
+        onDragOver={e => { if (isFileDrag(e)) { e.preventDefault(); setFileOver(true) } }}
+        onDragLeave={e => { if (isFileDrag(e)) setFileOver(false) }}
+        onDrop={e => {
+          if (isFileDrag(e)) {
+            e.preventDefault()
+            setFileOver(false)
+            handleFiles(e.dataTransfer.files)
+          }
+        }}
+        style={{
+          display: 'flex', flexWrap: 'wrap', gap: '8px', padding: fileOver ? '8px' : 0,
+          borderRadius: '10px', border: `2px dashed ${fileOver ? color.accent : 'transparent'}`,
+          background: fileOver ? 'var(--color-accent-dim)' : 'transparent', transition: 'border-color 0.15s, background 0.15s',
+        }}
+      >
         {photos.map((src, i) => (
           <div
             key={i}
@@ -89,7 +109,7 @@ export function PhotoUploader({ photos, onChange, max = 15 }: PhotoUploaderProps
       </div>
       <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
       <p style={{ fontSize: '11px', color: 'var(--color-muted)', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", margin: 0 }}>
-        {photos.length}/{max} photos{photos.length > 1 ? ' · drag to reorder' : ''}
+        {photos.length}/{max} photos · drag files here to upload{photos.length > 1 ? ' · drag thumbnails to reorder' : ''}
       </p>
     </div>
   )
