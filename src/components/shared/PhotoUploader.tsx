@@ -17,7 +17,7 @@ function toBase64(file: File): Promise<string> {
   })
 }
 
-export function PhotoUploader({ photos, onChange, max = 8 }: PhotoUploaderProps) {
+export function PhotoUploader({ photos, onChange, max = 15 }: PhotoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function handleFiles(files: FileList | null) {
