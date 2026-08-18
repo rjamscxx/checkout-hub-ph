@@ -56,10 +56,10 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
         <Input label="Category" value={form.category} onChange={e => set('category', e.target.value)} placeholder="e.g. Personal Care" />
         <Input label="Supplier" value={form.supplier ?? ''} onChange={e => set('supplier', e.target.value)} placeholder="e.g. Supplier A · Ate Nena" />
         <div style={gridTwo}>
-          <Input label="Cost Price ₱" type="number" min="0" step="0.01" value={form.costPrice} onChange={e => set('costPrice', Number(e.target.value))} />
-          <Input label="Sell Price ₱" type="number" min="0" step="0.01" value={form.sellPrice} onChange={e => set('sellPrice', Number(e.target.value))} />
+          <Input label="Cost Price ₱" type="number" min="0" step="0.01" value={form.costPrice || ''} onChange={e => set('costPrice', Number(e.target.value) || 0)} />
+          <Input label="Sell Price ₱" type="number" min="0" step="0.01" value={form.sellPrice || ''} onChange={e => set('sellPrice', Number(e.target.value) || 0)} />
         </div>
-        <Input label="Stock Qty" type="number" min="0" value={form.stock} onChange={e => set('stock', Number(e.target.value))} />
+        <Input label="Stock Qty" type="number" min="0" value={form.stock || ''} onChange={e => set('stock', Number(e.target.value) || 0)} />
         <Input label="Expiry Date (optional)" type="date" value={form.expiryDate ?? ''} onChange={e => set('expiryDate', e.target.value || undefined)} />
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-ink)', cursor: 'pointer' }}>
           <input type="checkbox" checked={form.availableToday} onChange={e => set('availableToday', e.target.checked)}
