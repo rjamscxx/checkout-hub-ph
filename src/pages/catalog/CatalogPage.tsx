@@ -50,7 +50,7 @@ export function CatalogPage() {
   const storeName = useLiveQuery(() => getSetting('store_name', 'Checkout Hub')) ?? 'Checkout Hub'
   const tagline = useLiveQuery(() => getSetting('store_tagline', '')) ?? ''
   const orderContact = useLiveQuery(() => getSetting('order_contact', '')) ?? ''
-  const availableProducts = allProducts.filter(p => p.availableToday && p.stock > 0)
+  const availableProducts = allProducts.filter(p => p.availableToday)
 
   const grouped = allProducts.reduce<Record<string, typeof allProducts>>((acc, p) => {
     const cat = p.category?.trim() || 'Uncategorized'

@@ -9,7 +9,7 @@ interface CatalogCardProps {
 }
 
 export function CatalogCard({ product, mode: _ }: CatalogCardProps) {
-  const available = product.availableToday && product.stock > 0
+  const available = product.availableToday
 
   return (
     <div style={{ ...card, overflow: 'hidden' }}>

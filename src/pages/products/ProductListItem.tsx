@@ -1,6 +1,5 @@
 import { Package } from 'lucide-react'
 import type { Product } from '../../db'
-import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { formatPHP } from '../../lib/utils'
 import { color, card, numeric } from '../../lib/theme'
@@ -13,8 +12,6 @@ interface ProductListItemProps {
 
 export function ProductListItem({ product, onEdit }: ProductListItemProps) {
   const thumb = product.photos[0]
-  const stockVariant = product.stock === 0 ? 'red' : product.stock < 5 ? 'gold' : 'green'
-  const stockLabel = product.stock === 0 ? 'Out of stock' : `${product.stock} left`
 
   return (
     <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px', padding: '12px' }}>
@@ -33,7 +30,6 @@ export function ProductListItem({ product, onEdit }: ProductListItemProps) {
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
-        <Badge variant={stockVariant}>{stockLabel}</Badge>
         <div style={{ display: 'flex', gap: '4px' }}>
           <Button size="sm" variant="ghost" onClick={onEdit}>Edit</Button>
           <Button

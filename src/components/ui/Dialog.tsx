@@ -21,7 +21,6 @@ export function Dialog({ open, onClose, title, children, maxWidth = 460 }: Dialo
             padding: '20px', overflowY: 'auto',
           }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose}
         >
           <motion.div
             role="dialog" aria-modal="true" aria-label={title}
