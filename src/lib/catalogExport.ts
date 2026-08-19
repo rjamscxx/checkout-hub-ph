@@ -51,63 +51,90 @@ async function fontEmbedCSS(node: HTMLElement): Promise<string | null> {
 async function captureOptions(node: HTMLElement) {
   const fonts = await fontEmbedCSS(node)
   return {
-    pixelRatio: 2,
+    // Pages are authored at their true output size (1920x1080), so capture 1:1.
+    pixelRatio: 1,
     backgroundColor: PAPER,
     width: node.offsetWidth,
     height: node.offsetHeight,
     ...(fonts ? { fontEmbedCSS: fonts } : {}),
-    // The board is centred on screen with `margin: 0 auto`. getComputedStyle
-    // resolves that to a real pixel margin, which html-to-image copies onto
-    // its clone — shoving the content sideways so the right edge gets cropped
-    // out of the canvas. Pin the clone flush to the origin.
+    // On screen the page is scaled down to fit the viewport, and its wrapper is
+    // centred. getComputedStyle resolves both to concrete values that
+    // html-to-image copies onto its clone — which would shrink the render and
+    // shove it sideways out of the canvas. Pin the clone to 1:1 at the origin.
     style: { margin: '0', transform: 'none' },
   }
 }
 
+/** Never let a wedged capture leave the toolbar spinning forever. */
+function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error(`${what} timed out after ${ms / 1000}s`)), ms)),
+  ])
+}
+
 async function nodeToJpeg(node: HTMLElement): Promise<string> {
   const { toJpeg } = await import('html-to-image')
-  await waitForImages(node)
+  await withTimeout(waitForImages(node), 15000, 'Loading images')
   const opts = { ...(await captureOptions(node)), quality: 0.95 }
   // The first pass primes html-to-image's resource cache; resources still
   // resolving during it render blank, so the second pass is the keeper.
-  await toJpeg(node, opts)
-  return toJpeg(node, opts)
+  await withTimeout(toJpeg(node, opts), 60000, 'Rendering (pass 1)')
+  return withTimeout(toJpeg(node, opts), 60000, 'Rendering (pass 2)')
 }
 
-export async function downloadJpeg(node: HTMLElement, filename: string): Promise<void> {
-  triggerDownload(await nodeToJpeg(node), filename)
+/** `catalog.jpg` for a single page, `catalog-1of3.jpg`… for a set. */
+function pageName(base: string, i: number, total: number, ext: string) {
+  return total > 1 ? `${base}-${i + 1}of${total}.${ext}` : `${base}.${ext}`
 }
 
-export async function downloadPdf(node: HTMLElement, filename: string): Promise<void> {
-  const dataUrl = await nodeToJpeg(node)
-  const img = new Image()
-  await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error('image load failed')); img.src = dataUrl })
+/** One JPEG per page, so every product stays legible at full size. */
+export async function downloadJpegPages(nodes: HTMLElement[], base: string): Promise<void> {
+  for (let i = 0; i < nodes.length; i++) {
+    triggerDownload(await nodeToJpeg(nodes[i]), pageName(base, i, nodes.length, 'jpg'))
+    // Chrome silently drops downloads fired back to back; let each one land.
+    if (i < nodes.length - 1) await new Promise(res => setTimeout(res, 500))
+  }
+}
+
+/** All pages in one landscape PDF. */
+export async function downloadPdfPages(nodes: HTMLElement[], filename: string): Promise<void> {
   const { jsPDF } = await import('jspdf')
-  const w = img.width, h = img.height
-  const pdf = new jsPDF({ orientation: h >= w ? 'portrait' : 'landscape', unit: 'px', format: [w, h], compress: true })
-  // JPEG keeps a photo-heavy flyer to a size that actually sends over chat.
-  pdf.addImage(dataUrl, 'JPEG', 0, 0, w, h)
+  const w = nodes[0].offsetWidth, h = nodes[0].offsetHeight
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [w, h], compress: true })
+  for (let i = 0; i < nodes.length; i++) {
+    if (i > 0) pdf.addPage([w, h], 'landscape')
+    // JPEG keeps a photo-heavy flyer to a size that actually sends over chat.
+    pdf.addImage(await nodeToJpeg(nodes[i]), 'JPEG', 0, 0, w, h)
+  }
   pdf.save(filename)
 }
 
 /**
- * Share the catalog as an image file via the Web Share API (opens Messenger,
- * etc. on mobile). Returns 'shared', 'downloaded' (fallback), or 'cancelled'.
+ * Share every page via the Web Share API (opens Messenger, etc. on mobile).
+ * Returns 'shared', 'downloaded' (fallback), or 'cancelled'.
  */
-export async function shareCatalog(node: HTMLElement, filename: string, storeName: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
-  const dataUrl = await nodeToJpeg(node)
-  const blob = await (await fetch(dataUrl)).blob()
-  const file = new File([blob], filename, { type: 'image/jpeg' })
+export async function shareCatalogPages(nodes: HTMLElement[], base: string, storeName: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+  const urls: string[] = []
+  for (const node of nodes) urls.push(await nodeToJpeg(node))
+
+  const files = await Promise.all(urls.map(async (url, i) =>
+    new File([await (await fetch(url)).blob()], pageName(base, i, urls.length, 'jpg'), { type: 'image/jpeg' })
+  ))
+
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
-  if (nav.canShare && nav.canShare({ files: [file] })) {
+  if (nav.canShare && nav.canShare({ files })) {
     try {
-      await nav.share({ files: [file], title: `${storeName} — Catalog`, text: `Today's items from ${storeName}` })
+      await nav.share({ files, title: `${storeName} — Catalog`, text: `Today's items from ${storeName}` })
       return 'shared'
     } catch (e) {
       if (e instanceof Error && e.name === 'AbortError') return 'cancelled'
       // fall through to download on share failure
     }
   }
-  triggerDownload(dataUrl, filename)
+  for (let i = 0; i < urls.length; i++) {
+    triggerDownload(urls[i], pageName(base, i, urls.length, 'jpg'))
+    if (i < urls.length - 1) await new Promise(res => setTimeout(res, 500))
+  }
   return 'downloaded'
 }
