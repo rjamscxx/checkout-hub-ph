@@ -35,13 +35,41 @@ async function waitForImages(node: HTMLElement): Promise<void> {
  * (offline) — the caller must then omit the option entirely so html-to-image
  * falls back to its own embedding rather than treating "" as "no fonts".
  */
+/**
+ * getFontEmbedCSS inlines EVERY @font-face the page can reach. The app loads
+ * Plus Jakarta Sans in five weights, and @fontsource ships each one in four
+ * subsets (latin, latin-ext, cyrillic, vietnamese) — about 440KB of base64
+ * once inlined.
+ *
+ * That string is embedded into every captured page's SVG, and serialising it
+ * pushed a single 1920x1080 capture past a minute — synchronously, so the
+ * export's own timeout couldn't even fire. A Philippine price list only needs
+ * Latin, so drop the rest: same rendered type, a fraction of the payload.
+ */
+function trimToLatin(css: string): string {
+  const blocks = css.match(/@font-face\s*\{[^}]*\}/g)
+  if (!blocks?.length) return css
+
+  // Each subset carries a unicode-range. The browser normalises basic Latin to
+  // "U+0-FF" rather than the authored "U+0000-00FF", so match both. A block
+  // with no range at all is kept — it isn't subsetted.
+  const latin = blocks.filter(b => !/unicode-range/i.test(b) || /U\+0*0-0*FF\b/i.test(b))
+  if (!latin.length) return css
+
+  // Every block ships woff2 AND woff. Captures render in Chrome, which takes
+  // woff2, so the woff copy is pure weight.
+  return latin
+    .map(b => b.replace(/,\s*url\([^)]*\)\s*format\((["']?)woff\1\)/gi, ''))
+    .join('\n')
+}
+
 let fontEmbedCache: string | null | undefined
 async function fontEmbedCSS(node: HTMLElement): Promise<string | null> {
   if (fontEmbedCache !== undefined) return fontEmbedCache
   try {
     const { getFontEmbedCSS } = await import('html-to-image')
     const css = await getFontEmbedCSS(node)
-    fontEmbedCache = css || null
+    fontEmbedCache = css ? trimToLatin(css) : null
   } catch {
     fontEmbedCache = null
   }
@@ -73,14 +101,27 @@ function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
   ])
 }
 
-async function nodeToJpeg(node: HTMLElement): Promise<string> {
+/**
+ * html-to-image's first render primes its resource cache — anything still
+ * resolving during that pass comes out blank, which is why a throwaway pass is
+ * needed at all. But the cache is shared across nodes, so priming ONCE is
+ * enough. Every page after the first then renders a single time instead of
+ * twice: a 12-page flyer drops from 24 full-size renders to 13.
+ */
+let primed = false
+async function primeCache(node: HTMLElement): Promise<void> {
+  if (primed) return
+  const { toJpeg } = await import('html-to-image')
+  // Cheap quality — this render is thrown away, it only warms the cache.
+  await withTimeout(toJpeg(node, { ...(await captureOptions(node)), quality: 0.4 }), 60000, 'Preparing export')
+  primed = true
+}
+
+async function nodeToJpeg(node: HTMLElement, quality = 0.95): Promise<string> {
   const { toJpeg } = await import('html-to-image')
   await withTimeout(waitForImages(node), 15000, 'Loading images')
-  const opts = { ...(await captureOptions(node)), quality: 0.95 }
-  // The first pass primes html-to-image's resource cache; resources still
-  // resolving during it render blank, so the second pass is the keeper.
-  await withTimeout(toJpeg(node, opts), 60000, 'Rendering (pass 1)')
-  return withTimeout(toJpeg(node, opts), 60000, 'Rendering (pass 2)')
+  await primeCache(node)
+  return withTimeout(toJpeg(node, { ...(await captureOptions(node)), quality }), 60000, 'Rendering')
 }
 
 /** `catalog.jpg` for a single page, `catalog-1of3.jpg`… for a set. */
@@ -105,7 +146,10 @@ export async function downloadPdfPages(nodes: HTMLElement[], filename: string): 
   for (let i = 0; i < nodes.length; i++) {
     if (i > 0) pdf.addPage([w, h], 'landscape')
     // JPEG keeps a photo-heavy flyer to a size that actually sends over chat.
-    pdf.addImage(await nodeToJpeg(nodes[i]), 'JPEG', 0, 0, w, h)
+    // 0.82 rather than the 0.95 used for standalone JPEGs: a dozen pages at
+    // full quality builds a PDF too large to message, and at PDF viewing size
+    // the difference isn't visible.
+    pdf.addImage(await nodeToJpeg(nodes[i], 0.82), 'JPEG', 0, 0, w, h)
   }
   pdf.save(filename)
 }

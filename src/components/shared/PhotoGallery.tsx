@@ -5,17 +5,25 @@ import { color } from '../../lib/theme'
 
 interface PhotoGalleryProps {
   photos: string[]
-  aspectRatio?: 'square' | 'video'
+  /** 'portrait' (4:5) suits phone-shot product photos, which are usually tall. */
+  aspectRatio?: 'square' | 'video' | 'portrait'
+  /**
+   * 'contain' shows the whole product with a little space at the edges;
+   * 'cover' fills the frame and crops. Supplier photos arrive at every aspect
+   * ratio, so the catalog uses 'contain' — a tin of luncheon meat with its
+   * label sliced off is worse than a bit of breathing room beside it.
+   */
+  fit?: 'cover' | 'contain'
 }
 
-export function PhotoGallery({ photos, aspectRatio = 'square' }: PhotoGalleryProps) {
+export function PhotoGallery({ photos, aspectRatio = 'square', fit = 'cover' }: PhotoGalleryProps) {
   const [idx, setIdx] = useState(0)
 
   const containerStyle: React.CSSProperties = {
     position: 'relative',
     overflow: 'hidden',
     borderRadius: '8px 8px 0 0',
-    aspectRatio: aspectRatio === 'square' ? '1 / 1' : '16 / 9',
+    aspectRatio: aspectRatio === 'video' ? '16 / 9' : aspectRatio === 'portrait' ? '4 / 5' : '1 / 1',
     background: 'var(--color-surface2)',
   }
 
@@ -34,7 +42,13 @@ export function PhotoGallery({ photos, aspectRatio = 'square' }: PhotoGalleryPro
           key={idx}
           src={photos[idx]}
           alt=""
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{
+            position: 'absolute',
+            inset: fit === 'contain' ? '6px' : 0,
+            width: fit === 'contain' ? 'calc(100% - 12px)' : '100%',
+            height: fit === 'contain' ? 'calc(100% - 12px)' : '100%',
+            objectFit: fit,
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

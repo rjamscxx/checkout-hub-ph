@@ -5,6 +5,7 @@ import type { Product } from '../../db'
 import { formatPHP } from '../../lib/utils'
 import { color, font, numeric, shadow } from '../../lib/theme'
 import { downloadJpegPages, downloadPdfPages, shareCatalogPages } from '../../lib/catalogExport'
+import { compressDataUrl } from '../../lib/imageCompress'
 
 interface ScreenshotModeProps {
   products: Product[]
@@ -21,6 +22,18 @@ const PAGE_W = 1920
 const PAGE_H = 1080
 /** Beyond this, products get too small to read at 1920px wide. */
 const PER_PAGE = 8
+
+/**
+ * Exporting captures the DOM by serialising it — every <img> src is inlined
+ * into the payload. Stored photos run to half a megabyte each, so a page of
+ * eight was carrying ~1.6MB of base64 and a single capture took over a minute.
+ *
+ * A card's photo box is ~420px wide on a 1920px page, so 640px is already
+ * generous. Shrinking to that first cuts the payload roughly tenfold and takes
+ * the export from unusable to a few seconds a page.
+ */
+const FLYER_PHOTO_EDGE = 640
+const FLYER_PHOTO_QUALITY = 0.82
 
 type Entry = { p: Product; cat: string }
 
@@ -48,6 +61,9 @@ function chunk<T>(items: T[], size: number): T[][] {
 export function ScreenshotMode({ products, storeName, tagline, orderContact, onExit }: ScreenshotModeProps) {
   const pageRefs = useRef<(HTMLDivElement | null)[]>([])
   const [busy, setBusy] = useState<Busy>(null)
+  /** productId → flyer-sized photo. */
+  const [thumbs, setThumbs] = useState<Record<number, string>>({})
+  const [preparing, setPreparing] = useState(true)
   const [scale, setScale] = useState(0.5)
 
   const now = new Date()
@@ -77,6 +93,29 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)
   }, [])
+
+  // Build flyer-sized copies of every photo before anything is captured.
+  // Falls back to the original if a photo won't re-encode, so a bad image
+  // costs quality rather than the whole export.
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      setPreparing(true)
+      const map: Record<number, string> = {}
+      for (const p of products) {
+        if (cancelled) return
+        const src = p.photos[0]
+        if (!src || p.id == null) continue
+        try {
+          map[p.id] = await compressDataUrl(src, FLYER_PHOTO_EDGE, FLYER_PHOTO_QUALITY)
+        } catch {
+          map[p.id] = src
+        }
+      }
+      if (!cancelled) { setThumbs(map); setPreparing(false) }
+    })()
+    return () => { cancelled = true }
+  }, [products])
 
   async function run(kind: Busy, fn: (nodes: HTMLDivElement[]) => Promise<unknown>) {
     if (busy) return
@@ -119,6 +158,7 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
                   pageNo={i + 1}
                   pageCount={pages.length}
                   totalItems={products.length}
+                  thumbs={thumbs}
                 />
               </div>
             </div>
@@ -129,9 +169,9 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
       {/* Toolbar — outside the captured pages */}
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 110 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px', background: 'var(--color-glass)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: `1px solid ${color.border}`, borderRadius: '999px', boxShadow: shadow.lg, pointerEvents: 'auto' }}>
-          <ToolBtn primary busy={busy === 'share'} disabled={!!busy} onClick={doShare} icon={Share2} label="Share" />
-          <ToolBtn busy={busy === 'jpeg'} disabled={!!busy} onClick={doJpeg} icon={ImageDown} label={pages.length > 1 ? `JPEG ×${pages.length}` : 'JPEG'} />
-          <ToolBtn busy={busy === 'pdf'} disabled={!!busy} onClick={doPdf} icon={FileText} label="PDF" />
+          <ToolBtn primary busy={busy === 'share'} disabled={!!busy || preparing} onClick={doShare} icon={Share2} label="Share" />
+          <ToolBtn busy={busy === 'jpeg'} disabled={!!busy || preparing} onClick={doJpeg} icon={ImageDown} label={pages.length > 1 ? `JPEG ×${pages.length}` : 'JPEG'} />
+          <ToolBtn busy={busy === 'pdf'} disabled={!!busy || preparing} onClick={doPdf} icon={FileText} label={preparing ? 'Preparing…' : 'PDF'} />
           <button onClick={onExit} aria-label="Close catalog" style={{ display: 'grid', placeItems: 'center', width: '38px', height: '38px', borderRadius: '999px', border: 'none', background: 'transparent', color: color.muted, cursor: 'pointer', flexShrink: 0 }}>
             <X size={18} strokeWidth={2} />
           </button>
@@ -141,9 +181,10 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
   )
 }
 
-function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLong, pageNo, pageCount, totalItems }: {
+function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLong, pageNo, pageCount, totalItems, thumbs }: {
   items: Entry[]; storeName: string; tagline?: string; orderContact?: string
   dateShort: string; dateLong: string; pageNo: number; pageCount: number; totalItems: number
+  thumbs: Record<number, string>
 }) {
   let cursor = 0
   const rows = rowsFor(items.length).map(n => items.slice(cursor, (cursor += n)))
@@ -176,7 +217,7 @@ function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLon
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '22px' }}>
         {rows.map((row, i) => (
           <div key={i} style={{ flex: 1, minHeight: 0, display: 'flex', gap: '22px' }}>
-            {row.map(({ p, cat }) => <FlyerCard key={p.id} p={p} cat={cat} />)}
+            {row.map(({ p, cat }) => <FlyerCard key={p.id} p={p} cat={cat} thumbs={thumbs} />)}
           </div>
         ))}
       </div>
@@ -202,8 +243,9 @@ function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLon
   )
 }
 
-function FlyerCard({ p, cat }: { p: Product; cat: string }) {
-  const photo = p.photos[0]
+function FlyerCard({ p, cat, thumbs }: { p: Product; cat: string; thumbs: Record<number, string> }) {
+  // The shrunken copy when it exists — that is what keeps a capture fast.
+  const photo = (p.id != null && thumbs[p.id]) || p.photos[0]
   return (
     <article style={{
       flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
@@ -215,7 +257,9 @@ function FlyerCard({ p, cat }: { p: Product; cat: string }) {
           intrinsic size and spill over the text below. Pin it instead. */}
       <div style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden', background: color.surface2, display: 'grid', placeItems: 'center', color: color.border2 }}>
         {photo
-          ? <img src={photo} alt={p.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          // contain, not cover: supplier photos arrive at every aspect ratio,
+          // and a customer seeing half a label is worse than a little space.
+          ? <img src={photo} alt={p.name} style={{ position: 'absolute', inset: '10px', width: 'calc(100% - 20px)', height: 'calc(100% - 20px)', objectFit: 'contain' }} />
           : <ImageOff size={44} strokeWidth={1.4} />}
       </div>
       {/* Fixed height so every card in a row has an identically sized photo,

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Camera, Check, ClipboardCopy, Plus, Share2 } from 'lucide-react'
+import { Camera, Check, ClipboardCopy, Share2 } from 'lucide-react'
 import { db, getSetting } from '../../db'
 import { CatalogCard } from './CatalogCard'
 import { ScreenshotMode } from './ScreenshotMode'
@@ -30,6 +30,9 @@ function buildPricelist(storeName: string, tagline: string, orderContact: string
   if (orderContact) lines.push(orderContact)
   return lines.join('\n').trim()
 }
+
+/** Stable DOM id for a category section, so the jump bar can scroll to it. */
+const catId = (cat: string) => `cat-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
 export function CatalogPage() {
   const [screenshotMode, setScreenshotMode] = useState(false)
@@ -90,35 +93,59 @@ export function CatalogPage() {
               message="Add products in the Products tab, mark them available, then share the view with customers."
             />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+              {/* Jump bar — 86 items across a dozen categories is a lot of
+                  scrolling otherwise. Sticky so it stays reachable mid-browse. */}
+              {categories.length > 1 && (
+                <nav
+                  aria-label="Jump to category"
+                  style={{
+                    position: 'sticky', top: 0, zIndex: 2, display: 'flex', flexWrap: 'wrap', gap: '6px',
+                    padding: '10px 0', background: color.bg,
+                    borderBottom: `1px solid ${color.border}`, marginBottom: '-8px',
+                  }}
+                >
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => document.getElementById(catId(cat))?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        fontSize: '12px', fontWeight: 600, fontFamily: 'inherit',
+                        padding: '5px 11px', borderRadius: '999px', cursor: 'pointer',
+                        border: `1px solid ${color.border}`, background: color.surface, color: color.ink,
+                        transition: 'border-color 0.15s ease-out, color 0.15s ease-out',
+                      }}
+                    >
+                      {cat}
+                      <span style={{ color: color.muted, fontWeight: 500, ...numeric }}>{grouped[cat].length}</span>
+                    </button>
+                  ))}
+                </nav>
+              )}
+
               {categories.map(cat => (
-                <div key={cat}>
-                  <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: color.muted, textTransform: 'uppercase', marginBottom: '10px' }}>
-                    {cat}
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: '12px' }}>
-                    {grouped[cat].map(p => {
-                      const on = p.availableToday
-                      return (
-                        <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <CatalogCard product={p} mode="edit" />
-                          <button
-                            onClick={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
-                            aria-pressed={on}
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                              fontSize: '12px', fontWeight: 600, borderRadius: '8px', padding: '7px',
-                              border: 'none', cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
-                              background: on ? color.greenDim : color.surface,
-                              color: on ? color.green : color.muted,
-                            }}
-                          >
-                            {on ? <Check size={14} strokeWidth={2.4} /> : <Plus size={14} strokeWidth={2.2} />}
-                            {on ? 'Available today' : 'Set available'}
-                          </button>
-                        </div>
-                      )
-                    })}
+                <div key={cat} id={catId(cat)} style={{ scrollMarginTop: '58px' }}>
+                  {/* Category header: name, count, then a rule to the edge so
+                      each group reads as its own shelf rather than a caption. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '13px' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', color: color.ink, textTransform: 'uppercase', margin: 0, flexShrink: 0 }}>
+                      {cat}
+                    </p>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: color.muted, flexShrink: 0, ...numeric }}>
+                      {grouped[cat].length}
+                    </span>
+                    <div style={{ flex: 1, height: '1px', background: color.border, minWidth: '12px' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(224px, 1fr))', gap: '14px', alignItems: 'stretch' }}>
+                    {grouped[cat].map(p => (
+                      <CatalogCard
+                        key={p.id}
+                        product={p}
+                        mode="edit"
+                        onToggleAvailable={() => p.id != null && toggleAvailableToday(p.id, p.availableToday)}
+                      />
+                    ))}
                   </div>
                 </div>
               ))}
