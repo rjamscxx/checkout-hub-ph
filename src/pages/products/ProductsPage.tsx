@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Package, Truck } from 'lucide-react'
+import { Inbox, Package, Truck } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { ProductListItem } from './ProductListItem'
 import { ProductForm } from './ProductForm'
 import { SupplierDrop } from './SupplierDrop'
+import { SupplierImport } from './SupplierImport'
 import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { Page, PageHeader, ContentFrame } from '../../components/layout/Page'
@@ -16,6 +17,7 @@ export function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [adding, setAdding] = useState(false)
   const [dropping, setDropping] = useState(false)
+  const [importing, setImporting] = useState(false)
 
   const grouped = (products ?? []).reduce<Record<string, Product[]>>((acc, p) => {
     const cat = p.category?.trim() || 'Uncategorized'
@@ -32,7 +34,10 @@ export function ProductsPage() {
       <PageHeader
         title="Products"
         action={
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <Button size="sm" variant="outline" onClick={() => setImporting(true)}>
+              <Inbox size={13} strokeWidth={1.9} /> Import Chat
+            </Button>
             <Button size="sm" variant="outline" onClick={() => setDropping(true)}>
               <Truck size={13} strokeWidth={1.9} /> Supplier Drop
             </Button>
@@ -79,6 +84,7 @@ export function ProductsPage() {
 
     <AnimatePresence>
       {dropping && <SupplierDrop onClose={() => setDropping(false)} />}
+      {importing && <SupplierImport onClose={() => setImporting(false)} />}
     </AnimatePresence>
     </>
   )

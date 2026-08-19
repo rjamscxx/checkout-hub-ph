@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { ImagePlus, Trash2, Truck, X } from 'lucide-react'
 import { getSetting } from '../../db'
 import { addProduct } from '../../hooks/useProducts'
+import { computeSellPrice } from '../../lib/supplierImport'
 import { DEFAULT_MARGIN_FLOOR } from '../../hooks/useOrders'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -23,13 +24,6 @@ interface DropItem {
 
 interface SupplierDropProps {
   onClose: () => void
-}
-
-function computeSell(cost: number, floor: number): number {
-  if (cost <= 0) return 0
-  if (floor <= 0) return cost
-  if (floor >= 100) return cost
-  return Math.ceil(cost / (1 - floor / 100))
 }
 
 export function SupplierDrop({ onClose }: SupplierDropProps) {
@@ -81,7 +75,7 @@ export function SupplierDrop({ onClose }: SupplierDropProps) {
       prev.map(item => {
         if (item.id !== id) return item
         const next = { ...item, [field]: value }
-        if (field === 'costPrice') next.sellPrice = computeSell(Number(value), marginFloor)
+        if (field === 'costPrice') next.sellPrice = computeSellPrice(Number(value), marginFloor)
         return next
       }),
     )
