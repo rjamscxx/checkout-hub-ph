@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Inbox, Package, Truck } from 'lucide-react'
+import { Inbox, Package, SearchX, Truck } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { ProductListItem } from './ProductListItem'
 import { ProductForm } from './ProductForm'
 import { SupplierDrop } from './SupplierDrop'
 import { SupplierImport } from './SupplierImport'
+import { DuplicateAlert } from './DuplicateAlert'
 import { Button } from '../../components/ui/Button'
+import { SearchInput } from '../../components/ui/SearchInput'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { Page, PageHeader, ContentFrame } from '../../components/layout/Page'
+import { searchProducts, findDuplicateGroups, duplicateIds } from '../../lib/catalog'
 import { color } from '../../lib/theme'
 import type { Product } from '../../db'
 
@@ -18,8 +21,20 @@ export function ProductsPage() {
   const [adding, setAdding] = useState(false)
   const [dropping, setDropping] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [query, setQuery] = useState('')
+  const [reviewingDupes, setReviewingDupes] = useState(false)
 
-  const grouped = (products ?? []).reduce<Record<string, Product[]>>((acc, p) => {
+  const all = useMemo(() => products ?? [], [products])
+  const dupeGroups = useMemo(() => findDuplicateGroups(all), [all])
+  const dupeIds = useMemo(() => duplicateIds(dupeGroups), [dupeGroups])
+
+  // Search first, then narrow to duplicates — so you can search *within* a review.
+  const visible = useMemo(() => {
+    const found = searchProducts(all, query)
+    return reviewingDupes ? found.filter(p => p.id != null && dupeIds.has(p.id)) : found
+  }, [all, query, reviewingDupes, dupeIds])
+
+  const grouped = visible.reduce<Record<string, Product[]>>((acc, p) => {
     const cat = p.category?.trim() || 'Uncategorized'
     ;(acc[cat] ??= []).push(p)
     return acc
@@ -28,11 +43,25 @@ export function ProductsPage() {
     a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
   )
 
+  const filtering = query.trim().length > 0 || reviewingDupes
+
+  function clearFilters() {
+    setQuery('')
+    setReviewingDupes(false)
+  }
+
   return (
     <>
     <Page>
       <PageHeader
         title="Products"
+        subtitle={
+          all.length > 0
+            ? filtering
+              ? `${visible.length} of ${all.length} ${all.length === 1 ? 'item' : 'items'}`
+              : `${all.length} ${all.length === 1 ? 'item' : 'items'}`
+            : undefined
+        }
         action={
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <Button size="sm" variant="outline" onClick={() => setImporting(true)}>
@@ -46,8 +75,25 @@ export function ProductsPage() {
         }
       />
 
+      {all.length > 0 && (
+        <DuplicateAlert
+          groups={dupeGroups}
+          reviewing={reviewingDupes}
+          onToggleReview={() => setReviewingDupes(v => !v)}
+        />
+      )}
+
       <ContentFrame>
-        {!products?.length && (
+        {all.length > 0 && (
+          <SearchInput
+            label="Search products"
+            placeholder="Search by name, category or supplier…"
+            value={query}
+            onChange={setQuery}
+          />
+        )}
+
+        {!all.length && (
           <EmptyState
             icon={Package}
             title="No products yet"
@@ -56,7 +102,20 @@ export function ProductsPage() {
           />
         )}
 
-        {products && products.length > 0 && (
+        {all.length > 0 && visible.length === 0 && (
+          <EmptyState
+            icon={SearchX}
+            title="No items match"
+            message={
+              reviewingDupes && query.trim()
+                ? 'Nothing in the duplicates matches that search.'
+                : 'Try a shorter search — part of a name, a category, or a supplier.'
+            }
+            action={{ label: 'Clear filters', onClick: clearFilters }}
+          />
+        )}
+
+        {visible.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {categories.map(cat => (
               <div key={cat}>
@@ -65,7 +124,12 @@ export function ProductsPage() {
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
                   {grouped[cat].map(p => (
-                    <ProductListItem key={p.id} product={p} onEdit={() => setEditing(p)} />
+                    <ProductListItem
+                      key={p.id}
+                      product={p}
+                      duplicate={p.id != null && dupeIds.has(p.id)}
+                      onEdit={() => setEditing(p)}
+                    />
                   ))}
                 </div>
               </div>
