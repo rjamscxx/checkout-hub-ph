@@ -62,9 +62,12 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
       transition={{ duration: 0.18, ease: 'easeOut' }}
       style={{ position: 'fixed', inset: 0, zIndex: 100, background: color.bg, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
     >
-      <div style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}>
+      {/* The centring lives on this wrapper, never on the captured board — an
+          `auto` margin resolves to real pixels that would be copied into the
+          export and crop it. */}
+      <div style={{ maxWidth: '560px', margin: '0 auto', paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}>
         {/* Captured board */}
-        <div ref={boardRef} style={{ maxWidth: '560px', margin: '0 auto', background: color.bg, padding: '32px 18px 26px' }}>
+        <div ref={boardRef} style={{ background: color.bg, padding: '32px 18px 26px' }}>
           {/* Masthead */}
           <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '9px', textAlign: 'center' }}>
             <img src="/logo-mark.png" alt="" style={{ height: '48px', width: 'auto' }} />
@@ -137,15 +140,18 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
 function ProductCard({ p }: { p: import('../../db').Product }) {
   const photo = p.photos[0]
   return (
-    <article style={{ background: color.surface, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${color.border}`, boxShadow: shadow.sm }}>
+    <article style={{ display: 'flex', flexDirection: 'column', background: color.surface, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${color.border}`, boxShadow: shadow.sm }}>
       <div style={{ aspectRatio: '1 / 1', background: color.surface2, display: 'grid', placeItems: 'center', color: color.border2 }}>
         {photo
-          ? <img src={photo} alt={p.name} crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={photo} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <ImageOff size={26} strokeWidth={1.5} />}
       </div>
-      <div style={{ padding: '11px 12px 13px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <div style={{ flex: 1, padding: '11px 12px 13px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <p style={{ fontSize: '13px', fontWeight: 600, color: color.ink, margin: 0, lineHeight: 1.3, fontFamily: font, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.name}</p>
-        <span style={{ fontSize: '17px', fontWeight: 800, color: color.accent, fontFamily: font, ...numeric }}>{formatPHP(p.sellPrice)}</span>
+        {p.description && (
+          <p style={{ fontSize: '11px', color: color.muted, margin: 0, lineHeight: 1.35, fontFamily: font, whiteSpace: 'pre-line', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
+        )}
+        <span style={{ fontSize: '17px', fontWeight: 800, color: color.accent, fontFamily: font, marginTop: 'auto', paddingTop: '3px', ...numeric }}>{formatPHP(p.sellPrice)}</span>
       </div>
     </article>
   )

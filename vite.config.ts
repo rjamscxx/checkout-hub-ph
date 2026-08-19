@@ -10,6 +10,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'logo-mark.png', 'logo-full.png'],
+      // woff2 is not in workbox's default glob — without it the self-hosted
+      // font isn't precached and typography breaks offline.
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      },
       manifest: {
         name: 'Checkout Hub PH',
         short_name: 'CheckoutHub',

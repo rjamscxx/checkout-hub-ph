@@ -1,3 +1,11 @@
+/* Self-hosted so typography survives offline (this is a local-first PWA) and
+   so the catalog exporter can inline the font — a cross-origin Google Fonts
+   sheet is unreadable to it and silently falls back to a system face. */
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+@import '@fontsource/plus-jakarta-sans/800.css';
 @import 'tailwindcss';
 
 @theme {
