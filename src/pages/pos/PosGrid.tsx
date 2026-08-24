@@ -14,7 +14,7 @@ import { searchProducts } from '../../lib/catalog'
 import { SearchInput } from '../../components/ui/SearchInput'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { formatPHP } from '../../lib/utils'
-import { color, card, numeric, space } from '../../lib/theme'
+import { color, card, numeric, space, shadow, clamp2 } from '../../lib/theme'
 
 const ALL = 'All'
 
@@ -27,20 +27,32 @@ interface PosGridProps {
 
 /* ---- stock badge -------------------------------------------------------- */
 
-function stockLabel(stock: number): { text: string; tone: string; bg: string } {
-  if (stock > 5) return { text: `${stock} left`, tone: color.muted, bg: color.surface2 }
-  if (stock > 0) return { text: `${stock} left`, tone: color.gold, bg: color.goldDim }
-  if (stock === 0) return { text: 'None left', tone: color.muted, bg: color.surface2 }
-  // Negative is not an error — it is what you owe the shelf after selling
-  // goods that were never counted in.
-  return { text: `${stock} owed`, tone: color.accent, bg: color.accentDim }
+/** Below this, a count is worth interrupting you about. */
+const LOW = 5
+
+interface Badge { text: string; fg: string }
+
+/**
+ * What the tile should say about stock, or nothing at all.
+ *
+ * Zero is deliberately silent. Products import at zero and this POS sells
+ * regardless, so zero means "never counted", not "sold out" — stamping
+ * "None left" on all 102 tiles was both noise and a lie. A healthy count is
+ * silent too: no news is good news, and the exact figure lives in Inventory.
+ * That leaves the two states worth a glance — what is nearly gone, and what
+ * has been sold past what you had.
+ */
+function stockBadge(stock: number): Badge | null {
+  if (stock < 0) return { text: `${Math.abs(stock)} owed`, fg: color.accent }
+  if (stock > 0 && stock <= LOW) return { text: `${stock} left`, fg: color.gold }
+  return null
 }
 
 /* ---- card --------------------------------------------------------------- */
 
 const PosCard = memo(function PosCard({ product, onAdd }: { product: Product; onAdd: (p: Product) => void }) {
   const photo = product.photos[0]
-  const badge = stockLabel(product.stock ?? 0)
+  const badge = stockBadge(product.stock ?? 0)
 
   return (
     <button
@@ -48,30 +60,61 @@ const PosCard = memo(function PosCard({ product, onAdd }: { product: Product; on
       onClick={() => onAdd(product)}
       style={{
         ...card, overflow: 'hidden', padding: 0, textAlign: 'left', cursor: 'pointer',
-        display: 'flex', flexDirection: 'column', height: '100%', fontFamily: 'inherit',
+        display: 'flex', flexDirection: 'column', fontFamily: 'inherit',
       }}
     >
-      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: color.surface2, display: 'grid', placeItems: 'center' }}>
-        {photo
-          ? <img src={photo} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          : <ImageOff size={24} strokeWidth={1.5} color={color.border2} />}
-        <span style={{
-          position: 'absolute', top: '6px', right: '6px', padding: '2px 7px',
-          borderRadius: '999px', fontSize: '10.5px', fontWeight: 700,
-          color: badge.tone, background: badge.bg, ...numeric,
-        }}>
-          {badge.text}
-        </span>
+      {/*
+        The image is positioned, not in flow. Left in flow it reports its own
+        intrinsic height, which overrides `aspect-ratio` and lets every tile
+        take the shape of whatever photo the supplier happened to send — rows
+        of different-height frames with the names floating at different
+        depths. Out of flow, the square frame always wins.
+      */}
+      <div style={{ position: 'relative', aspectRatio: '1 / 1', background: color.surface2, overflow: 'hidden', flexShrink: 0 }}>
+        {photo ? (
+          <img
+            src={photo}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: color.border2 }}>
+            <ImageOff size={24} strokeWidth={1.5} />
+          </div>
+        )}
+
+        {badge && (
+          <span
+            style={{
+              position: 'absolute', top: '6px', right: '6px',
+              padding: '2px 7px', borderRadius: '999px',
+              fontSize: '10.5px', fontWeight: 700, lineHeight: 1.5,
+              color: badge.fg,
+              // Solid, not a tint: these sit on top of a photograph, and a
+              // translucent chip is unreadable over half of them.
+              background: color.surface,
+              border: `1px solid ${badge.fg}`,
+              boxShadow: shadow.xs,
+              ...numeric,
+            }}
+          >
+            {badge.text}
+          </span>
+        )}
       </div>
 
-      <div style={{ padding: '9px 10px 10px', display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
-        <span style={{
-          fontSize: '12.5px', fontWeight: 600, color: color.ink, lineHeight: 1.3,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-        }}>
+      {/*
+        Two lines are reserved for the name whether it needs them or not, so
+        every tile is the same height and the prices line up across the row
+        without a pocket of dead space above them.
+      */}
+      <div style={{ padding: '9px 10px 10px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        <span style={{ fontSize: '12.5px', fontWeight: 600, color: color.ink, lineHeight: 1.3, minHeight: '2.6em', ...clamp2 }}>
           {product.name}
         </span>
-        <span style={{ fontSize: '15px', fontWeight: 700, color: color.accent, marginTop: 'auto', paddingTop: '6px', ...numeric }}>
+        <span style={{ fontSize: '15px', fontWeight: 700, color: color.accent, ...numeric }}>
           {formatPHP(product.sellPrice)}
         </span>
       </div>
