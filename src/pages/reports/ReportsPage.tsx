@@ -4,7 +4,7 @@ import { db } from '../../db'
 import { Button } from '../../components/ui/Button'
 import { Page, PageHeader, Section } from '../../components/layout/Page'
 import { formatPHP } from '../../lib/utils'
-import { color, numeric, column } from '../../lib/theme'
+import { color, numeric, column, clamp2 } from '../../lib/theme'
 import { ordersToCSV, profitsToCSV, expensesToCSV, downloadCSV } from '../../lib/csv'
 
 interface ProductStat { name: string; units: number; revenue: number; profit: number }
@@ -73,7 +73,7 @@ export function ReportsPage() {
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: color.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: color.ink, lineHeight: 1.3, ...clamp2 }}>{p.name}</p>
                   <p style={{ margin: '1px 0 0', fontSize: '11px', color: color.muted, ...numeric }}>
                     {formatPHP(p.revenue)} revenue · {formatPHP(p.profit)} profit
                   </p>

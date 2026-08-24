@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { addOrder, useMarginFloor } from '../../hooks/useOrders'
 import { formatPHP } from '../../lib/utils'
-import { color, numeric } from '../../lib/theme'
+import { color, numeric, clamp2 } from '../../lib/theme'
 
 interface QuickAddOrderProps {
   open: boolean
@@ -81,7 +81,7 @@ export function QuickAddOrder({ open, onClose }: QuickAddOrderProps) {
                     style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     onClick={() => toggleProduct(p)}
                   >
-                    <p style={{ fontWeight: 500, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                    <p style={{ fontWeight: 500, color: color.ink, fontSize: '14px', margin: 0, lineHeight: 1.3, ...clamp2 }}>{p.name}</p>
                     <p style={{ fontSize: '12px', margin: '2px 0 0', ...numeric }}>
                       <span style={{ color: color.accent }}>{formatPHP(p.sellPrice)}</span>
                     </p>

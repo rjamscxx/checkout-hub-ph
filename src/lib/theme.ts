@@ -62,6 +62,20 @@ export const card: CSSProperties = {
 }
 
 /**
+ * Two lines, then ellipsis — for names in narrow cards and list rows.
+ *
+ * A single-line `whiteSpace: nowrap` clamp reads fine on a desktop and then
+ * crushes a product name down to "Lucky …" in a 300px column on a phone,
+ * which is useless right after you have searched for it.
+ */
+export const clamp2: CSSProperties = {
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+}
+
+/**
  * Shared content-column widths for single-stack pages so forms and
  * summaries stop stretching full-bleed on wide screens — capped and
  * left-anchored (never centered).

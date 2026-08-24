@@ -8,7 +8,7 @@ import { QuickAddOrder } from '../orders/QuickAddOrder'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { Button } from '../../components/ui/Button'
 import { formatPHP, todayISO } from '../../lib/utils'
-import { color, numeric } from '../../lib/theme'
+import { color, numeric, clamp2 } from '../../lib/theme'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -109,8 +109,7 @@ export function HomePage() {
                       />
                       <div style={{ minWidth: 0 }}>
                         <span style={{
-                          fontSize: '14px', fontWeight: 500, color: color.ink,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                          fontSize: '14px', fontWeight: 500, color: color.ink, lineHeight: 1.3, ...clamp2,
                         }}>
                           {p.name}
                         </span>

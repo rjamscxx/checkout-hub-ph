@@ -2,7 +2,7 @@ import { Copy, Package } from 'lucide-react'
 import type { Product } from '../../db'
 import { Button } from '../../components/ui/Button'
 import { formatPHP } from '../../lib/utils'
-import { color, card, numeric } from '../../lib/theme'
+import { color, card, numeric, clamp2 } from '../../lib/theme'
 import { toggleAvailableToday } from '../../hooks/useProducts'
 
 interface ProductListItemProps {
@@ -16,18 +16,22 @@ export function ProductListItem({ product, onEdit, duplicate = false }: ProductL
   const thumb = product.photos[0]
 
   return (
+    // flexWrap plus a floor on the text column is what keeps a long name
+    // readable on a phone: rather than squeezing "Lucky Me Pancit Canton…"
+    // into the ~70px left over beside the buttons, the buttons drop to their
+    // own row and the name gets the full width. On a desktop it all still
+    // fits on one line, so nothing changes there.
     <div style={{
       ...card,
-      display: 'flex', alignItems: 'center', gap: '12px', padding: '12px',
+      display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', flexWrap: 'wrap',
       ...(duplicate ? { borderColor: color.gold } : null),
     }}>
       {thumb
         ? <img src={thumb} alt="" style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
         : <div style={{ width: '56px', height: '56px', borderRadius: '8px', background: color.surface2, display: 'grid', placeItems: 'center', color: color.muted, flexShrink: 0 }}><Package size={22} strokeWidth={1.6} /></div>
       }
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Own row — the name column is narrow, and an inline badge would
-            squeeze it down to an ellipsis. */}
+      <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
+        {/* Own row — an inline badge would squeeze the name to an ellipsis. */}
         {duplicate && (
           <span
             title="Another product has this same name"
@@ -42,7 +46,7 @@ export function ProductListItem({ product, onEdit, duplicate = false }: ProductL
             <Copy size={10} strokeWidth={2.2} aria-hidden="true" /> Duplicate
           </span>
         )}
-        <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{product.name}</p>
+        <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', lineHeight: 1.3, margin: 0, ...clamp2 }}>{product.name}</p>
         <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>
           {[product.category, product.supplier].filter(Boolean).join(' · ')}
         </p>
@@ -51,7 +55,7 @@ export function ProductListItem({ product, onEdit, duplicate = false }: ProductL
           <span style={{ fontSize: '11px', color: color.muted, ...numeric }}>cost {formatPHP(product.costPrice)}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0, marginLeft: 'auto' }}>
         <div style={{ display: 'flex', gap: '4px' }}>
           <Button size="sm" variant="ghost" onClick={onEdit}>Edit</Button>
           <Button

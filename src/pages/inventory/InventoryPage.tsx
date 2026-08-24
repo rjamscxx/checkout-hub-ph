@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { updateProduct, toggleAvailableToday } from '../../hooks/useProducts'
 import { Page, PageHeader, StatGrid, StatCard, ContentFrame } from '../../components/layout/Page'
-import { color, card, numeric } from '../../lib/theme'
+import { color, card, numeric, clamp2 } from '../../lib/theme'
 
 export function InventoryPage() {
   const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
@@ -55,7 +55,7 @@ export function InventoryPage() {
         {products.map(p => (
           <div key={p.id} style={{ ...card, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', margin: 0, lineHeight: 1.3, ...clamp2 }}>
                 {p.name}
               </p>
               <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>{p.category}</p>
