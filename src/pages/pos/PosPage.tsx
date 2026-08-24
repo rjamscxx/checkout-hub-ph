@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Receipt, RotateCcw, ShoppingCart, X } from 'lucide-react'
-import { db, type Order } from '../../db'
+import { db, type Order, type Product } from '../../db'
 import { useCart } from '../../hooks/useCart'
 import { addPaidSale, deleteOrder, useMarginFloor } from '../../hooks/useOrders'
 import { saleTotals } from '../../lib/sale'
@@ -25,8 +25,15 @@ import { printSaleReceipt } from './Receipt'
 /** How long the "sold" bar sticks around before it gets out of the way. */
 const CONFIRM_MS = 12000
 
+/**
+ * One shared empty list for the moment before the query resolves. A fresh
+ * `[]` on every render is a new prop identity, which defeats the grid's memo
+ * and re-renders every card for nothing.
+ */
+const NO_PRODUCTS: Product[] = []
+
 export function PosPage() {
-  const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? []
+  const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? NO_PRODUCTS
   const floor = useMarginFloor()
   const cart = useCart()
 

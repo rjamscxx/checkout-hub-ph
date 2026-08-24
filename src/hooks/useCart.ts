@@ -83,17 +83,24 @@ export function useCart(): UseCart {
   // Always leave exactly one cart to punch into. If the pointer is stale —
   // first run, cleared storage, a discarded row — adopt the most recently
   // touched sale rather than stranding it behind a brand new empty one.
+  //
+  // `creating` stays raised until an active cart is actually *observed*, not
+  // merely written. Clearing it when the write resolved reopened the gate
+  // before the live query had caught up, so the effect saw "no carts, not
+  // creating" again and added another — a burst of carts and a burst of
+  // re-renders that left the product grid remounting under your finger.
   useEffect(() => {
-    if (carts === undefined || active || creating.current) return
+    if (active) {
+      creating.current = false
+      return
+    }
+    if (carts === undefined || creating.current) return
     if (carts.length) {
       point(carts[carts.length - 1].id!)
       return
     }
     creating.current = true
-    db.carts
-      .add(blankCart('Sale 1'))
-      .then(id => point(Number(id)))
-      .finally(() => { creating.current = false })
+    void db.carts.add(blankCart('Sale 1')).then(id => point(Number(id)))
   }, [carts, active, point])
 
   // The mutations below must keep a stable identity: they are handed to the
@@ -165,16 +172,14 @@ export function useCart(): UseCart {
    * clean slate. `creating` holds the effect off until the new cart exists.
    */
   const startFresh = useCallback((retiring: number | null) => {
+    // Lowered by the effect above once the new cart is visible, for the same
+    // reason it is raised here — see the note on that effect.
     creating.current = true
     void (async () => {
-      try {
-        if (retiring != null) await db.carts.delete(retiring)
-        const remaining = await db.carts.toArray()
-        const id = await db.carts.add(blankCart(nextLabel(remaining)))
-        point(Number(id))
-      } finally {
-        creating.current = false
-      }
+      if (retiring != null) await db.carts.delete(retiring)
+      const remaining = await db.carts.toArray()
+      const id = await db.carts.add(blankCart(nextLabel(remaining)))
+      point(Number(id))
     })()
   }, [point])
 
