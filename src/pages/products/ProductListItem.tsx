@@ -1,8 +1,16 @@
-import { Copy, Package } from 'lucide-react'
+/**
+ * One product in the catalog list.
+ *
+ * The card carries exactly one piece of brand red — the price. Availability
+ * used to be a filled accent button, which put a second red on every card and
+ * turned a hundred-product catalog into a wall of it, all shouting louder
+ * than the money. It is a state, not a call to action, so it reads as a quiet
+ * green mark instead — the same treatment the catalog card already uses.
+ */
+import { Check, Copy, Package, Pencil } from 'lucide-react'
 import type { Product } from '../../db'
-import { Button } from '../../components/ui/Button'
 import { formatPHP } from '../../lib/utils'
-import { color, card, numeric, clamp2 } from '../../lib/theme'
+import { color, card, numeric, radius, space, clamp2 } from '../../lib/theme'
 import { toggleAvailableToday } from '../../hooks/useProducts'
 
 interface ProductListItemProps {
@@ -12,60 +20,109 @@ interface ProductListItemProps {
   duplicate?: boolean
 }
 
+const THUMB = 60
+
 export function ProductListItem({ product, onEdit, duplicate = false }: ProductListItemProps) {
   const thumb = product.photos[0]
+  const available = product.availableToday
 
   return (
-    // flexWrap plus a floor on the text column is what keeps a long name
-    // readable on a phone: rather than squeezing "Lucky Me Pancit Canton…"
-    // into the ~70px left over beside the buttons, the buttons drop to their
-    // own row and the name gets the full width. On a desktop it all still
-    // fits on one line, so nothing changes there.
     <div style={{
       ...card,
-      display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', flexWrap: 'wrap',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%',
       ...(duplicate ? { borderColor: color.gold } : null),
     }}>
-      {thumb
-        ? <img src={thumb} alt="" style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
-        : <div style={{ width: '56px', height: '56px', borderRadius: '8px', background: color.surface2, display: 'grid', placeItems: 'center', color: color.muted, flexShrink: 0 }}><Package size={22} strokeWidth={1.6} /></div>
-      }
-      <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
-        {/* Own row — an inline badge would squeeze the name to an ellipsis. */}
-        {duplicate && (
-          <span
-            title="Another product has this same name"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '3px',
-              background: color.goldDim, color: color.gold,
-              fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em',
-              textTransform: 'uppercase', padding: '2px 6px', borderRadius: '5px',
-              marginBottom: '3px',
-            }}
-          >
-            <Copy size={10} strokeWidth={2.2} aria-hidden="true" /> Duplicate
-          </span>
-        )}
-        <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', lineHeight: 1.3, margin: 0, ...clamp2 }}>{product.name}</p>
-        <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0' }}>
-          {[product.category, product.supplier].filter(Boolean).join(' · ')}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: color.accent, ...numeric }}>{formatPHP(product.sellPrice)}</span>
-          <span style={{ fontSize: '11px', color: color.muted, ...numeric }}>cost {formatPHP(product.costPrice)}</span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: space[3], padding: space[3], flex: 1, minWidth: 0 }}>
+        {/* Fixed square frame with the image positioned inside it, so a tall
+            supplier photo cannot stretch the row. */}
+        <div style={{
+          position: 'relative', width: THUMB, height: THUMB, flexShrink: 0,
+          borderRadius: radius.sm + 1, overflow: 'hidden', background: color.surface2,
+        }}>
+          {thumb ? (
+            <img src={thumb} alt="" loading="lazy" decoding="async"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: color.border2 }}>
+              <Package size={22} strokeWidth={1.6} />
+            </div>
+          )}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Own row — an inline badge would squeeze the name to an ellipsis. */}
+          {duplicate && (
+            <span
+              title="Another product has this same name"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '3px',
+                background: color.goldDim, color: color.gold,
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em',
+                textTransform: 'uppercase', padding: '2px 6px', borderRadius: '5px',
+                marginBottom: '3px',
+              }}
+            >
+              <Copy size={10} strokeWidth={2.2} aria-hidden="true" /> Duplicate
+            </span>
+          )}
+
+          <p style={{ fontWeight: 600, color: color.ink, fontSize: '14px', lineHeight: 1.3, margin: 0, ...clamp2 }}>
+            {product.name}
+          </p>
+
+          {(product.category || product.supplier) && (
+            <p style={{ fontSize: '11.5px', color: color.muted, margin: '3px 0 0', lineHeight: 1.3, ...clamp2 }}>
+              {[product.category, product.supplier].filter(Boolean).join(' · ')}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: space[2], marginTop: '5px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: color.accent, ...numeric }}>
+              {formatPHP(product.sellPrice)}
+            </span>
+            <span style={{ fontSize: '11px', color: color.muted, ...numeric }}>
+              cost {formatPHP(product.costPrice)}
+            </span>
+          </div>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0, marginLeft: 'auto' }}>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <Button size="sm" variant="ghost" onClick={onEdit}>Edit</Button>
-          <Button
-            size="sm"
-            variant={product.availableToday ? 'primary' : 'outline'}
-            onClick={() => product.id != null && toggleAvailableToday(product.id, product.availableToday)}
-          >
-            {product.availableToday ? 'Available today' : 'Set available'}
-          </Button>
-        </div>
+
+      {/* A deliberate action row rather than buttons that happen to wrap. */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: space[2],
+        padding: `${space[2]}px ${space[3]}px`, borderTop: `1px solid ${color.border}`,
+        background: color.surface2,
+      }}>
+        <button
+          onClick={() => product.id != null && toggleAvailableToday(product.id, available)}
+          aria-pressed={available}
+          title={available ? 'Showing on the catalog today' : 'Not on the catalog today'}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            padding: '4px 9px 4px 7px', borderRadius: '999px', cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600,
+            color: available ? color.green : color.muted,
+            background: available ? color.greenDim : 'transparent',
+            border: `1px solid ${available ? 'transparent' : color.border2}`,
+          }}
+        >
+          <Check size={12} strokeWidth={available ? 2.6 : 2} aria-hidden="true" style={{ opacity: available ? 1 : 0.45 }} />
+          {available ? 'Available today' : 'Not today'}
+        </button>
+
+        <button
+          onClick={onEdit}
+          aria-label={`Edit ${product.name}`}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            padding: '4px 9px', borderRadius: radius.sm, cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600,
+            color: color.ink2, background: 'transparent', border: `1px solid ${color.border}`,
+          }}
+        >
+          <Pencil size={12} strokeWidth={2} aria-hidden="true" />
+          Edit
+        </button>
       </div>
     </div>
   )

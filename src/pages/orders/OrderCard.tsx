@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Printer, Trash2 } from 'lucide-react'
 import type { Order } from '../../db'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { formatPHP, formatDate } from '../../lib/utils'
 import { markOrderPaid, updateOrderStatus, deleteOrder, orderProfit, orderMargin, useMarginFloor } from '../../hooks/useOrders'
-import { color, numeric, card } from '../../lib/theme'
+import { color, numeric, card, clamp2 } from '../../lib/theme'
+import { printOrderReceipt } from '../../lib/receipt'
 
 type BadgeVariant = 'gold' | 'green' | 'muted'
 const STATUS_VARIANT: Record<Order['status'], BadgeVariant> = {
@@ -27,7 +28,7 @@ export function OrderCard({ order }: { order: Order }) {
     <div style={{ ...card, padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 600, color: color.ink, fontSize: '15px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.customerName}</p>
+          <p style={{ fontWeight: 600, color: color.ink, fontSize: '15px', margin: 0, lineHeight: 1.3, ...clamp2 }}>{order.customerName}</p>
           <p style={{ fontSize: '12px', color: color.muted, margin: '2px 0 0', ...numeric }}>{order.ref} · {formatDate(order.createdAt)}</p>
         </div>
         <Badge variant={STATUS_VARIANT[order.status]}>{order.status}</Badge>
@@ -54,6 +55,15 @@ export function OrderCard({ order }: { order: Order }) {
           )}
         </div>
         <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={order.status === 'pending' ? 'Print order slip' : 'Print receipt'}
+            title={order.status === 'pending' ? 'Print order slip' : 'Print receipt'}
+            onClick={() => { void printOrderReceipt(order) }}
+          >
+            <Printer size={15} strokeWidth={1.8} />
+          </Button>
           {order.status === 'pending' && (
             <Button size="sm" onClick={() => markOrderPaid(order)}>Mark Paid</Button>
           )}

@@ -20,7 +20,7 @@ import { formatPHP } from '../../lib/utils'
 import { color, card, numeric, radius, space, shadow, z } from '../../lib/theme'
 import { PosGrid } from './PosGrid'
 import { PosCart } from './PosCart'
-import { printSaleReceipt } from './Receipt'
+import { printOrderReceipt } from '../../lib/receipt'
 
 /** How long the "sold" bar sticks around before it gets out of the way. */
 const CONFIRM_MS = 12000
@@ -91,7 +91,7 @@ export function PosPage() {
             Sold {formatPHP(sold.total)} · {sold.ref}
           </span>
           <div style={{ flex: 1 }} />
-          <BarAction icon={Receipt} label="Receipt" onClick={() => { void printSaleReceipt(sold) }} />
+          <BarAction icon={Receipt} label="Receipt" onClick={() => { void printOrderReceipt(sold) }} />
           <BarAction icon={RotateCcw} label="Undo" onClick={() => { void undo() }} />
           <BarAction icon={X} label="Dismiss" onClick={() => setSold(null)} iconOnly />
         </div>

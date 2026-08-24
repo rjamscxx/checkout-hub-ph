@@ -1,91 +1,249 @@
+/**
+ * The printed document — receipt, order slip, or invoice.
+ *
+ * This runs in a window of its own, which is why every value below is a
+ * literal. The old version styled it with `var(--color-accent)` and friends,
+ * but those custom properties live on the app's `<html>` and do not exist
+ * here, so every one of them resolved to nothing: the brand red never
+ * printed, the rules under the headings never drew, and the whole thing came
+ * out as plain black Arial with no borders.
+ *
+ * The palette is deliberately the light one whatever theme the app is in.
+ * Paper is white; a receipt printed from dark mode should not come out in
+ * dark-mode ink.
+ */
 import type { Invoice } from '../../db'
 import { formatPHP, formatDate } from '../../lib/utils'
 
-interface PrintInvoiceOptions {
+/* Brand tokens, mirrored from index.css as literals. Keep them in step by
+   hand — this document cannot read the app's stylesheet. */
+const BRAND = {
+  ink: '#18171A',
+  ink2: '#3D3B42',
+  muted: '#79767F',
+  rule: '#E6E3DC',
+  rule2: '#D8D4CC',
+  accent: '#D91A22',
+  paper: '#FFFFFF',
+  tint: '#F7F6F3',
+} as const
+
+export interface PrintInvoiceOptions {
   invoice: Invoice
   storeName: string
   storePhone?: string
   storeAddress?: string
   gcashQr?: string
   mayaQr?: string
+  /** Heading on the document — "Receipt", "Order", "Invoice". */
+  docLabel?: string
 }
 
-export function printInvoice({ invoice, storeName, storePhone = '', storeAddress = '', gcashQr = '', mayaQr = '' }: PrintInvoiceOptions): void {
-  const itemRows = invoice.items
-    .map(i => `<tr>
-      <td style="padding:5px 0;border-bottom:1px solid var(--color-surface2);font-size:12px">${i.description}</td>
-      <td style="padding:5px 0;border-bottom:1px solid var(--color-surface2);font-size:12px;text-align:center">${i.qty}</td>
-      <td style="padding:5px 0;border-bottom:1px solid var(--color-surface2);font-size:12px;text-align:right">${formatPHP(i.price)}</td>
-      <td style="padding:5px 0;border-bottom:1px solid var(--color-surface2);font-size:12px;text-align:right">${formatPHP(i.price * i.qty)}</td>
-    </tr>`)
+/** Values going into markup we assemble by hand. */
+function esc(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+export function printInvoice({
+  invoice,
+  storeName,
+  storePhone = '',
+  storeAddress = '',
+  gcashQr = '',
+  mayaQr = '',
+  docLabel = 'Invoice',
+}: PrintInvoiceOptions): void {
+  const rows = invoice.items
+    .map(
+      i => `<tr>
+        <td class="item">${esc(i.description)}</td>
+        <td class="qty num">${i.qty}</td>
+        <td class="num">${formatPHP(i.price)}</td>
+        <td class="num amount">${formatPHP(i.price * i.qty)}</td>
+      </tr>`,
+    )
     .join('')
 
+  const meta = [storePhone, storeAddress].filter(Boolean).map(esc).join(' · ')
+
   const html = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>${invoice.invoiceNo}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 13px; max-width: 400px; margin: 0 auto; padding: 20px; color: var(--color-ink); }
-    .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--color-accent); }
-    .store-name { font-size: 20px; font-weight: bold; }
-    .store-info { font-size: 11px; color: var(--color-muted); margin-top: 2px; }
-    .inv-no { color: var(--color-accent); font-weight: bold; font-size: 14px; margin: 8px 0 4px; }
-    .inv-date { font-size: 11px; color: var(--color-muted); }
-    .customer { margin: 12px 0; font-size: 13px; }
-    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-    th { text-align: left; font-size: 11px; color: var(--color-muted); padding: 4px 0; border-bottom: 1px solid var(--color-border); }
-    th:not(:first-child) { text-align: right; }
-    .total-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border); }
-    .total-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-    .grand-total { font-weight: bold; font-size: 16px; color: var(--color-accent); }
-    .paid-via { font-size: 12px; color: var(--color-muted); margin-top: 8px; }
-    .footer { margin-top: 16px; text-align: center; font-size: 11px; color: var(--color-muted); border-top: 1px solid var(--color-border); padding-top: 12px; }
-    @media print { body { padding: 0; } }
-  </style>
+<meta charset="UTF-8">
+<title>${esc(invoice.invoiceNo)}</title>
+<!-- The window is opened blank, so it has no document URL to resolve
+     relative paths against and /logo-full.png silently resolved to nothing.
+     A base gives the whole document the app's origin to work from. -->
+<base href="${window.location.origin}/">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @page { size: auto; margin: 12mm; }
+
+  html {
+    /* without this the browser drops the red to save ink */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    /* the brand face if the machine has it, then the closest humanist sans
+       Windows and macOS already ship */
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: ${BRAND.ink};
+    background: ${BRAND.paper};
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 22px 20px 26px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  .mast { text-align: center; padding-bottom: 14px; }
+  /* the mark, not the full lockup: that one carries its own wordmark and
+     would print "Checkout Hub" twice, and it would go stale the moment the
+     store is renamed. The mark sits above the name and the name is type. */
+  .mast img { width: 54px; height: auto; display: block; margin: 0 auto 8px; }
+  .store { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .meta { font-size: 10.5px; color: ${BRAND.muted}; margin-top: 2px; }
+
+  /* the one mark that carries the brand across every document */
+  .brandrule { height: 2px; background: ${BRAND.accent}; border-radius: 2px; }
+
+  .doc { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; }
+  .doclabel { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: ${BRAND.accent}; }
+  .docref { font-size: 12px; font-weight: 700; }
+  .docdate { font-size: 10.5px; color: ${BRAND.muted}; margin-top: 1px; }
+
+  .party { margin-top: 12px; font-size: 12px; }
+  .party dt { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ${BRAND.muted}; }
+  .party dd { font-weight: 700; margin-top: 1px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  thead th {
+    font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: ${BRAND.muted}; font-weight: 700; text-align: right;
+    padding-bottom: 6px; border-bottom: 1px solid ${BRAND.rule2};
+  }
+  thead th:first-child { text-align: left; }
+  tbody td { padding: 7px 0; border-bottom: 1px solid ${BRAND.rule}; text-align: right; vertical-align: top; }
+  tbody td.item { text-align: left; padding-right: 10px; color: ${BRAND.ink2}; }
+  tbody td.qty { width: 34px; color: ${BRAND.muted}; }
+  tbody td.amount { font-weight: 700; width: 88px; }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  .totals { margin-top: 4px; border-top: 1px solid ${BRAND.rule2}; padding-top: 10px; }
+  .line { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; color: ${BRAND.ink2}; margin-bottom: 4px; }
+  .line .num { font-weight: 600; }
+  .grand {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+    margin-top: 8px; padding-top: 9px; border-top: 2px solid ${BRAND.ink};
+  }
+  .grand .label { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .grand .value { font-size: 20px; font-weight: 800; color: ${BRAND.accent}; letter-spacing: -0.02em; }
+
+  .paid { margin-top: 10px; font-size: 11px; color: ${BRAND.muted}; }
+  .paid b { color: ${BRAND.ink2}; font-weight: 700; }
+
+  .pay { margin-top: 16px; padding: 12px; background: ${BRAND.tint}; border-radius: 10px; text-align: center; }
+  .pay p { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ${BRAND.muted}; font-weight: 700; margin-bottom: 8px; }
+  .qrs { display: flex; justify-content: center; gap: 18px; }
+  .qr img { width: 88px; height: 88px; object-fit: contain; display: block; }
+  .qr span { display: block; font-size: 9.5px; font-weight: 700; color: ${BRAND.ink2}; margin-top: 3px; }
+
+  .note { margin-top: 14px; font-size: 11px; color: ${BRAND.ink2}; font-style: italic; }
+  .thanks { margin-top: 16px; padding-top: 12px; border-top: 1px solid ${BRAND.rule}; text-align: center; font-size: 10.5px; color: ${BRAND.muted}; }
+</style>
 </head>
 <body>
-  <div class="header">
-    <div class="store-name">${storeName}</div>
-    ${storePhone || storeAddress ? `<div class="store-info">${[storePhone, storeAddress].filter(Boolean).join(' · ')}</div>` : ''}
-    <div class="inv-no">${invoice.invoiceNo}</div>
-    <div class="inv-date">${formatDate(invoice.createdAt)}</div>
+  <div class="mast">
+    <img src="/logo-mark.png" alt="">
+    <div class="store">${esc(storeName)}</div>
+    ${meta ? `<div class="meta">${meta}</div>` : ''}
   </div>
-  <div class="customer"><strong>Customer:</strong> ${invoice.customerName}</div>
+  <div class="brandrule"></div>
+
+  <div class="doc">
+    <div>
+      <div class="doclabel">${esc(docLabel)}</div>
+      <div class="docdate">${formatDate(invoice.createdAt)}</div>
+    </div>
+    <div class="docref num">${esc(invoice.invoiceNo)}</div>
+  </div>
+
+  <dl class="party">
+    <dt>Billed to</dt>
+    <dd>${esc(invoice.customerName)}</dd>
+  </dl>
+
   <table>
     <thead>
-      <tr>
-        <th>Item</th>
-        <th style="text-align:center">Qty</th>
-        <th style="text-align:right">Price</th>
-        <th style="text-align:right">Amount</th>
-      </tr>
+      <tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr>
     </thead>
-    <tbody>${itemRows}</tbody>
+    <tbody>${rows}</tbody>
   </table>
-  <div class="total-section">
-    <div class="total-row"><span>Subtotal</span><span>${formatPHP(invoice.subtotal)}</span></div>
-    ${invoice.discount > 0 ? `<div class="total-row"><span>Discount</span><span>-${formatPHP(invoice.discount)}</span></div>` : ''}
-    <div class="total-row grand-total"><span>Total</span><span>${formatPHP(invoice.total)}</span></div>
+
+  <div class="totals">
+    <div class="line"><span>Subtotal</span><span class="num">${formatPHP(invoice.subtotal)}</span></div>
+    ${invoice.discount > 0 ? `<div class="line"><span>Discount</span><span class="num">−${formatPHP(invoice.discount)}</span></div>` : ''}
+    <div class="grand">
+      <span class="label">Total</span>
+      <span class="value num">${formatPHP(invoice.total)}</span>
+    </div>
+    ${invoice.paidVia ? `<div class="paid">Payment · <b>${esc(invoice.paidVia)}</b></div>` : ''}
   </div>
-  ${invoice.paidVia ? `<div class="paid-via">Paid via: ${invoice.paidVia}</div>` : ''}
+
   ${gcashQr || mayaQr ? `
-  <div style="margin-top:12px;padding-top:10px;border-top:1px solid #eee">
-    <p style="font-size:11px;color:#888;margin-bottom:8px;text-align:center">Scan to pay</p>
-    <div style="display:flex;justify-content:center;gap:16px">
-      ${gcashQr ? `<div style="text-align:center"><img src="${gcashQr}" style="width:90px;height:90px;object-fit:contain" /><p style="font-size:10px;font-weight:700;margin:4px 0 0;color:#555">GCash</p></div>` : ''}
-      ${mayaQr ? `<div style="text-align:center"><img src="${mayaQr}" style="width:90px;height:90px;object-fit:contain" /><p style="font-size:10px;font-weight:700;margin:4px 0 0;color:#555">Maya</p></div>` : ''}
+  <div class="pay">
+    <p>Scan to pay</p>
+    <div class="qrs">
+      ${gcashQr ? `<div class="qr"><img src="${esc(gcashQr)}" alt=""><span>GCash</span></div>` : ''}
+      ${mayaQr ? `<div class="qr"><img src="${esc(mayaQr)}" alt=""><span>Maya</span></div>` : ''}
     </div>
   </div>` : ''}
-  ${invoice.notes ? `<div class="footer">${invoice.notes}</div>` : ''}
-  <div class="footer">Thank you for your business!</div>
+
+  ${invoice.notes ? `<p class="note">${esc(invoice.notes)}</p>` : ''}
+
+  <div class="thanks">Thank you for your business</div>
 </body>
 </html>`
 
   const win = window.open('', '_blank')
-  if (!win) { alert('Please allow pop-ups to print invoices.'); return }
+  if (!win) {
+    alert('Please allow pop-ups to print.')
+    return
+  }
   win.document.write(html)
   win.document.close()
-  setTimeout(() => win.print(), 300)
+
+  // Print once the artwork is actually there. A bare timer raced the logo and
+  // the QR codes, and a document that prints mid-load comes out with holes
+  // where they should have been.
+  let fired = false
+  const print = () => {
+    if (fired) return
+    fired = true
+    win.focus()
+    win.print()
+  }
+  const pending = Array.from(win.document.images).filter(img => !img.complete)
+  if (!pending.length) {
+    win.setTimeout(print, 120)
+  } else {
+    let left = pending.length
+    const tick = () => { if (--left <= 0) win.setTimeout(print, 60) }
+    pending.forEach(img => {
+      img.addEventListener('load', tick)
+      img.addEventListener('error', tick)
+    })
+    // never leave the window hanging on an image that will not resolve
+    win.setTimeout(print, 2500)
+  }
 }

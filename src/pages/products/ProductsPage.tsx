@@ -122,7 +122,9 @@ export function ProductsPage() {
                 <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', color: color.muted, textTransform: 'uppercase', marginBottom: '10px' }}>
                   {cat} <span style={{ fontWeight: 500 }}>({grouped[cat].length})</span>
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '10px', alignItems: 'start' }}>
+                {/* stretch, not start: cards in a row then share a height and
+                    their action rows land on one line */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(258px, 1fr))', gap: '10px', alignItems: 'stretch' }}>
                   {grouped[cat].map(p => (
                     <ProductListItem
                       key={p.id}
