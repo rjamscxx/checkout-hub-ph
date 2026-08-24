@@ -17,7 +17,7 @@ import { Page, PageHeader } from '../../components/layout/Page'
 import { Sheet } from '../../components/ui/Sheet'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { formatPHP } from '../../lib/utils'
-import { color, card, numeric, radius, space, shadow } from '../../lib/theme'
+import { color, card, numeric, radius, space, shadow, z } from '../../lib/theme'
 import { PosGrid } from './PosGrid'
 import { PosCart } from './PosCart'
 import { printSaleReceipt } from './Receipt'
@@ -33,7 +33,9 @@ const CONFIRM_MS = 12000
 const NO_PRODUCTS: Product[] = []
 
 export function PosPage() {
-  const products = useLiveQuery(() => db.products.orderBy('name').toArray()) ?? NO_PRODUCTS
+  const catalog = useLiveQuery(() => db.products.orderBy('name').toArray())
+  const products = catalog ?? NO_PRODUCTS
+  const loadingCatalog = catalog === undefined
   const floor = useMarginFloor()
   const cart = useCart()
 
@@ -75,13 +77,13 @@ export function PosPage() {
     <Page>
       <PageHeader
         title="POS"
-        subtitle={products.length ? `${products.length} products · tap to add` : 'No products yet'}
+        subtitle={loadingCatalog ? 'Loading catalog…' : products.length ? `${products.length} products · tap to add` : 'No products yet'}
       />
 
       {sold && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: space[3], flexWrap: 'wrap',
-          background: color.greenDim, border: `1px solid ${color.green}33`,
+          background: color.greenDim,
           borderRadius: radius.lg - 2, padding: `${space[3]}px ${space[4]}px`,
         }}>
           <CheckCircle2 size={18} strokeWidth={2} color={color.green} />
@@ -101,16 +103,37 @@ export function PosPage() {
         </p>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: space[4], minWidth: 0 }}>
-        <div style={{ flex: 1, minWidth: 0, paddingBottom: isDesktop ? 0 : '76px' }}>
-          <PosGrid products={products} onAdd={cart.addProduct} />
+      {/*
+        On a desktop the row is pinned to the viewport and the grid scrolls
+        inside it, rather than the page scrolling under a sticky cart. A
+        sticky cart tall enough to hold ten lines hung below the fold at
+        scroll top and took the Charge button with it — the one control that
+        must never be out of reach. The subtracted height is this page's
+        chrome above the row: padding, header, gap, and the sold bar when it
+        is showing.
+      */}
+      <div
+        style={{
+          display: 'flex', gap: space[4], minWidth: 0,
+          alignItems: isDesktop ? 'stretch' : 'flex-start',
+          height: isDesktop ? `calc(100dvh - ${sold ? 208 : 136}px)` : undefined,
+          minHeight: isDesktop ? '380px' : undefined,
+        }}
+      >
+        <div
+          style={{
+            flex: 1, minWidth: 0,
+            overflowY: isDesktop ? 'auto' : undefined,
+            paddingBottom: isDesktop ? space[2] : '76px',
+          }}
+        >
+          <PosGrid products={products} onAdd={cart.addProduct} loading={loadingCatalog} />
         </div>
 
         {isDesktop && (
           <aside style={{
             ...card, width: '340px', flexShrink: 0, padding: space[4],
-            position: 'sticky', top: space[4], maxHeight: 'calc(100dvh - 56px)',
-            display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column', minHeight: 0,
           }}>
             <PosCart cart={cart} floor={floor} charging={charging} onCharge={charge} />
           </aside>
@@ -127,7 +150,7 @@ export function PosPage() {
                 transition={{ type: 'tween', duration: 0.18, ease: 'easeOut' }}
                 onClick={() => setDrawer(true)}
                 style={{
-                  position: 'fixed', left: '12px', right: '12px', zIndex: 30,
+                  position: 'fixed', left: '12px', right: '12px', zIndex: z.docked,
                   bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
                   display: 'flex', alignItems: 'center', gap: space[2],
                   height: '52px', padding: `0 ${space[4]}px`, borderRadius: radius.lg,

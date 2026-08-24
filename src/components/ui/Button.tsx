@@ -13,7 +13,7 @@ const F = "'Plus Jakarta Sans', system-ui, sans-serif"
 const VARIANT_BASE: Record<Variant, React.CSSProperties> = {
   primary: { background: 'var(--color-accent)', color: 'var(--color-on-accent)' },
   ghost:   { background: 'transparent', color: 'var(--color-muted)' },
-  danger:  { background: 'var(--color-accent-dim)', color: 'var(--color-accent)', border: '1px solid var(--color-accent-dim)' },
+  danger:  { background: 'var(--color-accent-dim)', color: 'var(--color-accent)', border: '1px solid var(--color-accent)' },
   outline: { background: 'transparent', color: 'var(--color-ink)', border: '1px solid var(--color-border)' },
 }
 

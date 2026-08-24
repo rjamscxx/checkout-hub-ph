@@ -62,6 +62,20 @@ export const card: CSSProperties = {
 }
 
 /**
+ * One ladder for stacked surfaces. Values were being picked ad hoc (2, 20, 30,
+ * 40, 50, 100, 110, 200 all appear in the app), which is how a drawer ends up
+ * under the thing it is supposed to cover.
+ */
+export const z = {
+  raised: 2,
+  header: 20,
+  docked: 30,
+  overlay: 40,
+  sheet: 50,
+  fullscreen: 100,
+} as const
+
+/**
  * Two lines, then ellipsis — for names in narrow cards and list rows.
  *
  * A single-line `whiteSpace: nowrap` clamp reads fine on a desktop and then

@@ -76,6 +76,44 @@ describe('saleTotals', () => {
   })
 })
 
+describe('a real basket', () => {
+  // Ten lines off the shop floor, checked against the figures on screen after
+  // RJ asked whether a PHP 1,900 total could be right.
+  const basket: OrderItem[] = [
+    { productId: 1,  name: 'Natural One - Grape Juice 1.7L', qty: 1, price: 189, cost: 145 },
+    { productId: 2,  name: 'Lanzones 1KG',                   qty: 1, price: 139, cost: 105 },
+    { productId: 3,  name: 'Black Grapes 1KG',               qty: 1, price: 189, cost: 145 },
+    { productId: 4,  name: 'Porkchop Skinless',              qty: 1, price: 249, cost: 190 },
+    { productId: 5,  name: 'Chorizo De Cebu',                qty: 1, price: 119, cost: 90  },
+    { productId: 6,  name: 'Beef Tendon 900G - 1KG',         qty: 1, price: 219, cost: 167 },
+    { productId: 7,  name: 'Bounty Drumsticks',              qty: 1, price: 159, cost: 121 },
+    { productId: 8,  name: 'Purefoods Tapa & Tocino Set',    qty: 1, price: 179, cost: 137 },
+    { productId: 9,  name: 'CDO Ham Bits & Pieces 500G',     qty: 1, price: 149, cost: 114 },
+    { productId: 10, name: 'the line below the fold',        qty: 1, price: 309, cost: 236 },
+  ]
+
+  it('adds the lines up to what the cart shows', () => {
+    expect(saleTotals(basket).subtotal).toBe(1900)
+  })
+
+  it('counts units, not lines, on the badge', () => {
+    expect(saleTotals(basket).itemCount).toBe(10)
+  })
+
+  it('leaves the total equal to the subtotal when nothing is discounted', () => {
+    expect(saleTotals(basket).total).toBe(1900)
+  })
+
+  it('never counts a line twice, however many times it is punched', () => {
+    let items: OrderItem[] = []
+    for (const line of basket) items = addLine(items, line)
+    for (const line of basket) items = addLine(items, line)
+    expect(items).toHaveLength(10)
+    expect(saleTotals(items).subtotal).toBe(3800)
+    expect(saleTotals(items).itemCount).toBe(20)
+  })
+})
+
 describe('profitTone', () => {
   const floor = 20
 

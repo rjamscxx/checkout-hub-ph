@@ -21,6 +21,8 @@ const ALL = 'All'
 interface PosGridProps {
   products: Product[]
   onAdd: (product: Product) => void
+  /** True until the catalog query has answered. */
+  loading?: boolean
 }
 
 /* ---- stock badge -------------------------------------------------------- */
@@ -77,9 +79,32 @@ const PosCard = memo(function PosCard({ product, onAdd }: { product: Product; on
   )
 })
 
+/* ---- skeleton ----------------------------------------------------------- */
+
+/**
+ * Structural placeholders while the catalog loads. Without them an empty
+ * array reads as "no products yet" and the real empty state flashes on every
+ * visit before the data lands.
+ */
+function GridSkeleton() {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(136px, 1fr))', gap: space[2] }} aria-hidden="true">
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} style={{ ...card, overflow: 'hidden' }}>
+          <div style={{ aspectRatio: '1 / 1', background: color.surface2 }} />
+          <div style={{ padding: '9px 10px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ height: '9px', width: '82%', borderRadius: '3px', background: color.surface2 }} />
+            <div style={{ height: '9px', width: '46%', borderRadius: '3px', background: color.surface2 }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /* ---- grid --------------------------------------------------------------- */
 
-export const PosGrid = memo(function PosGrid({ products, onAdd }: PosGridProps) {
+export const PosGrid = memo(function PosGrid({ products, onAdd, loading = false }: PosGridProps) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState(ALL)
 
@@ -129,7 +154,9 @@ export const PosGrid = memo(function PosGrid({ products, onAdd }: PosGridProps) 
         </div>
       )}
 
-      {shown.length ? (
+      {loading ? (
+        <GridSkeleton />
+      ) : shown.length ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(136px, 1fr))', gap: space[2] }}>
           {shown.map(p => <PosCard key={p.id} product={p} onAdd={onAdd} />)}
         </div>

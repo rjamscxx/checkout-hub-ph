@@ -114,6 +114,11 @@
   .pos-card { transition: border-color 0.12s, transform 0.06s; }
   .pos-card:hover { border-color: var(--color-accent); }
   .pos-card:active { transform: scale(0.97); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pos-card { transition: none; }
+    .pos-card:active { transform: none; }
+  }
 }
 
 @layer utilities {
