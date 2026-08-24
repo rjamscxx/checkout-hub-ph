@@ -31,10 +31,30 @@ export interface Order {
   ref: string
   customerName: string
   items: OrderItem[]
+  /** What the customer pays — already net of `discount`. */
   total: number
+  /** Knocked off at the counter. Absent on orders taken before the POS existed. */
+  discount?: number
   status: 'pending' | 'paid' | 'done'
   notes: string
   createdAt: string
+}
+
+/**
+ * A sale being punched in at the POS.
+ *
+ * The sale being worked on and the ones parked to be finished later are the
+ * same thing — a row in this table — so parking is only a question of which
+ * id the POS is pointed at, and a refresh mid-sale loses nothing.
+ */
+export interface Cart {
+  id?: number
+  /** Shown on the parked-sale chips, e.g. "Sale 2". */
+  label: string
+  items: OrderItem[]
+  discount: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface InvoiceItem {
@@ -86,6 +106,7 @@ class CheckoutHubDB extends Dexie {
   profits!: EntityTable<ProfitEntry, 'id'>
   expenses!: EntityTable<Expense, 'id'>
   settings!: EntityTable<Settings, 'key'>
+  carts!: EntityTable<Cart, 'id'>
 
   constructor() {
     super('checkout_hub_v2')
@@ -96,6 +117,11 @@ class CheckoutHubDB extends Dexie {
       profits: '++id, source, date',
       expenses: '++id, category, date',
       settings: 'key',
+    })
+    // v2 adds the POS cart table. Dexie carries every unlisted store forward,
+    // so only the new one is named here.
+    this.version(2).stores({
+      carts: '++id, updatedAt',
     })
   }
 }

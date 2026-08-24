@@ -107,6 +107,15 @@
   }
 }
 
+@layer components {
+  /* POS product cards. A tap is a sale, so it needs to feel like it landed —
+     and with a few hundred cards on screen this has to be CSS, not a motion
+     component per card. */
+  .pos-card { transition: border-color 0.12s, transform 0.06s; }
+  .pos-card:hover { border-color: var(--color-accent); }
+  .pos-card:active { transform: scale(0.97); }
+}
+
 @layer utilities {
   .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .price { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; letter-spacing: -0.01em; }

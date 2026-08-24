@@ -22,15 +22,16 @@ export function Sheet({ open, onClose, children, className }: SheetProps) {
           />
           <motion.div
             className={cn(
-              'fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[85dvh] overflow-y-auto shadow-xl',
+              'fixed bottom-0 left-0 right-0 rounded-t-2xl z-50 max-h-[85dvh] overflow-y-auto shadow-xl',
               className
             )}
+            style={{ background: 'var(--color-surface)' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 350 }}
           >
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mt-3 mb-4" />
+            <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-4" style={{ background: 'var(--color-border2)' }} />
             {children}
           </motion.div>
         </>

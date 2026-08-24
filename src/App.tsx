@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, Sun, Moon } from 'lucide-react'
 import { Sidebar, type TabId } from './components/layout/Sidebar'
 import { HomePage }      from './pages/home/HomePage'
+import { PosPage }       from './pages/pos/PosPage'
 import { CatalogPage }   from './pages/catalog/CatalogPage'
 import { OrdersPage }    from './pages/orders/OrdersPage'
 import { ProductsPage }  from './pages/products/ProductsPage'
@@ -20,6 +21,7 @@ import { color, font } from './lib/theme'
 
 const PAGE_MAP: Record<TabId, React.ComponentType> = {
   home:      HomePage,
+  pos:       PosPage,
   catalog:   CatalogPage,
   orders:    OrdersPage,
   customers: CustomersPage,
