@@ -9,19 +9,23 @@ import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/shared/EmptyState'
 import { Page, PageHeader, ContentFrame } from '../../components/layout/Page'
 import { toggleAvailableToday } from '../../hooks/useProducts'
+import { groupForDisplay, UNCATEGORIZED_SHELF, type Shelf } from '../../lib/catalog'
 import { color, numeric } from '../../lib/theme'
 import { formatPHP } from '../../lib/utils'
 
-function buildPricelist(storeName: string, tagline: string, orderContact: string, categories: string[], grouped: Record<string, { name: string; sellPrice: number }[]>): string {
+function buildPricelist(storeName: string, tagline: string, orderContact: string, shelves: Shelf[]): string {
   const date = new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
   const lines: string[] = []
   lines.push(`📦 ${storeName}`)
   if (tagline) lines.push(tagline)
   lines.push(`✅ Available Today — ${date}`)
   lines.push('')
-  for (const cat of categories) {
-    if (categories.length > 1 || cat !== 'Uncategorized') lines.push(`${cat}:`)
-    for (const p of grouped[cat]) {
+  for (const shelf of shelves) {
+    // A lone unnamed shelf needs no heading; anything else does, and the
+    // onhand one earns the extra words because it is the reason to reply now.
+    if (shelf.onhand) lines.push('ONHAND — ready today:')
+    else if (shelves.length > 1 || shelf.name !== UNCATEGORIZED_SHELF) lines.push(`${shelf.name}:`)
+    for (const p of shelf.products) {
       lines.push(`• ${p.name} — ${formatPHP(p.sellPrice)}`)
     }
     lines.push('')
@@ -31,7 +35,7 @@ function buildPricelist(storeName: string, tagline: string, orderContact: string
   return lines.join('\n').trim()
 }
 
-/** Stable DOM id for a category section, so the jump bar can scroll to it. */
+/** Stable DOM id for a shelf, so the jump bar can scroll to it. */
 const catId = (cat: string) => `cat-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
 export function CatalogPage() {
@@ -39,7 +43,7 @@ export function CatalogPage() {
   const [copied, setCopied] = useState(false)
 
   async function copyPricelist() {
-    const text = buildPricelist(storeName, tagline, orderContact, categories.filter(c => grouped[c]?.length), grouped)
+    const text = buildPricelist(storeName, tagline, orderContact, groupForDisplay(availableProducts))
     try {
       await navigator.clipboard.writeText(text)
     } catch {
@@ -55,14 +59,7 @@ export function CatalogPage() {
   const orderContact = useLiveQuery(() => getSetting('order_contact', '')) ?? ''
   const availableProducts = allProducts.filter(p => p.availableToday)
 
-  const grouped = allProducts.reduce<Record<string, typeof allProducts>>((acc, p) => {
-    const cat = p.category?.trim() || 'Uncategorized'
-    ;(acc[cat] ??= []).push(p)
-    return acc
-  }, {})
-  const categories = Object.keys(grouped).sort((a, b) =>
-    a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
-  )
+  const shelves = groupForDisplay(allProducts)
 
   return (
     <>
@@ -96,49 +93,53 @@ export function CatalogPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               {/* Jump bar — 86 items across a dozen categories is a lot of
                   scrolling otherwise. Sticky so it stays reachable mid-browse. */}
-              {categories.length > 1 && (
+              {shelves.length > 1 && (
                 <nav
-                  aria-label="Jump to category"
+                  aria-label="Jump to shelf"
                   style={{
                     position: 'sticky', top: 0, zIndex: 2, display: 'flex', flexWrap: 'wrap', gap: '6px',
                     padding: '10px 0', background: color.bg,
                     borderBottom: `1px solid ${color.border}`, marginBottom: '-8px',
                   }}
                 >
-                  {categories.map(cat => (
+                  {shelves.map(shelf => (
                     <button
-                      key={cat}
-                      onClick={() => document.getElementById(catId(cat))?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      key={shelf.name}
+                      onClick={() => document.getElementById(catId(shelf.name))?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        fontSize: '12px', fontWeight: 600, fontFamily: 'inherit',
+                        fontSize: '12px', fontWeight: shelf.onhand ? 700 : 600, fontFamily: 'inherit',
                         padding: '5px 11px', borderRadius: '999px', cursor: 'pointer',
-                        border: `1px solid ${color.border}`, background: color.surface, color: color.ink,
+                        border: `1px solid ${shelf.onhand ? color.accent : color.border}`,
+                        background: shelf.onhand ? color.accentDim : color.surface,
+                        color: shelf.onhand ? color.accent : color.ink,
                         transition: 'border-color 0.15s ease-out, color 0.15s ease-out',
                       }}
                     >
-                      {cat}
-                      <span style={{ color: color.muted, fontWeight: 500, ...numeric }}>{grouped[cat].length}</span>
+                      {shelf.name}
+                      <span style={{ color: shelf.onhand ? color.accent : color.muted, fontWeight: 500, ...numeric }}>{shelf.products.length}</span>
                     </button>
                   ))}
                 </nav>
               )}
 
-              {categories.map(cat => (
-                <div key={cat} id={catId(cat)} style={{ scrollMarginTop: '58px' }}>
-                  {/* Category header: name, count, then a rule to the edge so
-                      each group reads as its own shelf rather than a caption. */}
+              {shelves.map(shelf => (
+                <div key={shelf.name} id={catId(shelf.name)} style={{ scrollMarginTop: '58px' }}>
+                  {/* Shelf header: name, count, then a rule to the edge so each
+                      group reads as its own shelf rather than a caption. The
+                      onhand one wears the brand colour, since it is the shelf
+                      the whole flyer is arranged around. */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '13px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', color: color.ink, textTransform: 'uppercase', margin: 0, flexShrink: 0 }}>
-                      {cat}
+                    <p style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', color: shelf.onhand ? color.accent : color.ink, textTransform: 'uppercase', margin: 0, flexShrink: 0 }}>
+                      {shelf.name}
                     </p>
                     <span style={{ fontSize: '12px', fontWeight: 600, color: color.muted, flexShrink: 0, ...numeric }}>
-                      {grouped[cat].length}
+                      {shelf.products.length}
                     </span>
-                    <div style={{ flex: 1, height: '1px', background: color.border, minWidth: '12px' }} />
+                    <div style={{ flex: 1, height: '1px', background: shelf.onhand ? color.accent : color.border, opacity: shelf.onhand ? 0.4 : 1, minWidth: '12px' }} />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(224px, 1fr))', gap: '14px', alignItems: 'stretch' }}>
-                    {grouped[cat].map(p => (
+                    {shelf.products.map(p => (
                       <CatalogCard
                         key={p.id}
                         product={p}

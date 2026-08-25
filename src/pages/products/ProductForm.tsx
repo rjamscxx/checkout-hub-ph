@@ -21,7 +21,7 @@ type FormState = Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
 
 const EMPTY: FormState = {
   name: '', description: '', category: '', costPrice: 0, sellPrice: 0,
-  stock: 0, availableToday: true, photos: [],
+  stock: 0, availableToday: true, onhand: false, photos: [],
 }
 
 export function ProductForm({ product, open, onClose }: ProductFormProps) {
@@ -32,7 +32,7 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
     product
       ? { name: product.name, description: product.description, category: product.category,
           costPrice: product.costPrice, sellPrice: product.sellPrice, stock: product.stock,
-          availableToday: product.availableToday, photos: [...product.photos],
+          availableToday: product.availableToday, onhand: !!product.onhand, photos: [...product.photos],
           expiryDate: product.expiryDate }
       : { ...EMPTY }
   )
@@ -98,6 +98,14 @@ export function ProductForm({ product, open, onClose }: ProductFormProps) {
           <input type="checkbox" checked={form.availableToday} onChange={e => set('availableToday', e.target.checked)}
             style={{ accentColor: 'var(--color-accent)', width: '16px', height: '16px' }} />
           Available Today
+        </label>
+        {/* Ticking onhand ticks available too, the same way the inventory
+            pill does — the two flags must not be able to disagree. */}
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-ink)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={!!form.onhand}
+            onChange={e => setForm(f => ({ ...f, onhand: e.target.checked, availableToday: e.target.checked || f.availableToday }))}
+            style={{ accentColor: 'var(--color-accent)', width: '16px', height: '16px' }} />
+          Onhand — I have this in hand
         </label>
         <div style={{ display: 'flex', gap: '8px', paddingTop: '8px' }}>
           <Button style={{ flex: 1 }} onClick={handleSave} disabled={!form.name.trim()}>

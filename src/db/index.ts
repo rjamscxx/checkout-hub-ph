@@ -10,6 +10,9 @@ export interface Product {
   sellPrice: number
   stock: number
   availableToday: boolean
+  /** Stock physically in hand, ready to hand over today. Absent on products
+   *  entered before the onhand shelf existed — which reads as false. */
+  onhand?: boolean
   photos: string[]
   expiryDate?: string
   createdAt: string

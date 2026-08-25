@@ -1,5 +1,5 @@
 /**
- * Catalog lookups — free-text search and duplicate detection.
+ * Catalog lookups — free-text search, duplicate detection and shelving.
  *
  * Both go through `normalizeName`, the same match key the supplier importer
  * uses, so "the same product" means one thing everywhere in the app: case,
@@ -87,4 +87,61 @@ export function findNameCollision(
   const key = normalizeName(name)
   if (!key) return undefined
   return products.find(p => p.id !== excludeId && normalizeName(p.name) === key)
+}
+
+/* ---- shelving ---------------------------------------------------------- */
+
+/**
+ * The shelf physically-held stock is filed under.
+ *
+ * Deliberately shouted: on the flyer it is the first thing a customer reads,
+ * and it is the one heading that promises "you can have this today".
+ */
+export const ONHAND_SHELF = 'ONHAND'
+
+/** Where products with no category of their own end up. */
+export const UNCATEGORIZED_SHELF = 'Uncategorized'
+
+export interface Shelf {
+  /** The heading — `ONHAND_SHELF`, a category name, or `UNCATEGORIZED_SHELF`. */
+  name: string
+  /** True only for the onhand shelf, so callers can style it as the headline. */
+  onhand: boolean
+  products: Product[]
+}
+
+/**
+ * Products split into the shelves they are shown on, in the order they appear.
+ *
+ * Onhand stock leaves its category and moves to a single shelf pinned at the
+ * top, so every item appears exactly once and the flyer opens with what is
+ * ready to hand over. Everything else falls under its category, A-Z, with the
+ * uncategorized remainder last. Empty shelves are dropped.
+ *
+ * The owner catalog, the customer flyer, the image and PDF exports and the
+ * copied pricelist all shelve through here. One function means the flyer can
+ * never disagree with the screen it was built from.
+ */
+export function groupForDisplay(products: Product[]): Shelf[] {
+  const onhand: Product[] = []
+  const byCategory = new Map<string, Product[]>()
+
+  for (const p of products) {
+    if (p.onhand) { onhand.push(p); continue }
+    const cat = p.category?.trim() || UNCATEGORIZED_SHELF
+    const shelf = byCategory.get(cat)
+    if (shelf) shelf.push(p)
+    else byCategory.set(cat, [p])
+  }
+
+  const categories = [...byCategory.keys()].sort((a, b) =>
+    a === UNCATEGORIZED_SHELF ? 1 : b === UNCATEGORIZED_SHELF ? -1 : a.localeCompare(b)
+  )
+
+  const shelves: Shelf[] = []
+  if (onhand.length) shelves.push({ name: ONHAND_SHELF, onhand: true, products: onhand })
+  for (const name of categories) {
+    shelves.push({ name, onhand: false, products: byCategory.get(name)! })
+  }
+  return shelves
 }

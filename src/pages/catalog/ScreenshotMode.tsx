@@ -6,6 +6,7 @@ import { formatPHP } from '../../lib/utils'
 import { color, font, numeric, shadow } from '../../lib/theme'
 import { downloadJpegPages, downloadPdfPages, shareCatalogPages } from '../../lib/catalogExport'
 import { compressDataUrl } from '../../lib/imageCompress'
+import { groupForDisplay, UNCATEGORIZED_SHELF } from '../../lib/catalog'
 
 interface ScreenshotModeProps {
   products: Product[]
@@ -35,7 +36,7 @@ const PER_PAGE = 8
 const FLYER_PHOTO_EDGE = 640
 const FLYER_PHOTO_QUALITY = 0.82
 
-type Entry = { p: Product; cat: string }
+type Entry = { p: Product; cat: string; onhand: boolean }
 
 /**
  * Split a page's items into rows that each fill the full width, so a page is
@@ -72,18 +73,13 @@ export function ScreenshotMode({ products, storeName, tagline, orderContact, onE
   const slug = (storeName || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'store'
   const fileBase = `${slug}-catalog-${now.toISOString().slice(0, 10)}`
 
-  // Group only to order the run — the flyer itself flows continuously and tags
-  // each card with its category, so a one-item category can't punch a hole in
-  // the grid the way a per-category sub-grid did.
-  const grouped = products.reduce<Record<string, Product[]>>((acc, p) => {
-    const cat = p.category?.trim() || 'Uncategorized'
-    ;(acc[cat] ??= []).push(p)
-    return acc
-  }, {})
-  const categories = Object.keys(grouped).sort((a, b) =>
-    a === 'Uncategorized' ? 1 : b === 'Uncategorized' ? -1 : a.localeCompare(b)
+  // Shelve only to order the run — the flyer itself flows continuously and tags
+  // each card with its shelf, so a one-item shelf can't punch a hole in the
+  // grid the way a per-shelf sub-grid did. Onhand stock shelves first, so it
+  // lands on page one where a customer actually looks.
+  const ordered: Entry[] = groupForDisplay(products).flatMap(shelf =>
+    shelf.products.map(p => ({ p, cat: shelf.name, onhand: shelf.onhand }))
   )
-  const ordered: Entry[] = categories.flatMap(cat => grouped[cat].map(p => ({ p, cat })))
   const pages = chunk(ordered, PER_PAGE)
 
   // Fit a full-HD page into whatever viewport is previewing it.
@@ -217,7 +213,7 @@ function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLon
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '22px' }}>
         {rows.map((row, i) => (
           <div key={i} style={{ flex: 1, minHeight: 0, display: 'flex', gap: '22px' }}>
-            {row.map(({ p, cat }) => <FlyerCard key={p.id} p={p} cat={cat} thumbs={thumbs} />)}
+            {row.map(({ p, cat, onhand }) => <FlyerCard key={p.id} p={p} cat={cat} onhand={onhand} thumbs={thumbs} />)}
           </div>
         ))}
       </div>
@@ -243,7 +239,7 @@ function FlyerPage({ items, storeName, tagline, orderContact, dateShort, dateLon
   )
 }
 
-function FlyerCard({ p, cat, thumbs }: { p: Product; cat: string; thumbs: Record<number, string> }) {
+function FlyerCard({ p, cat, onhand, thumbs }: { p: Product; cat: string; onhand: boolean; thumbs: Record<number, string> }) {
   // The shrunken copy when it exists — that is what keeps a capture fast.
   const photo = (p.id != null && thumbs[p.id]) || p.photos[0]
   return (
@@ -265,8 +261,8 @@ function FlyerCard({ p, cat, thumbs }: { p: Product; cat: string; thumbs: Record
       {/* Fixed height so every card in a row has an identically sized photo,
           whether or not it carries a description. */}
       <div style={{ height: '152px', boxSizing: 'border-box', overflow: 'hidden', padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
-        {cat !== 'Uncategorized' && (
-          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: color.muted, lineHeight: 1 }}>{cat}</span>
+        {cat !== UNCATEGORIZED_SHELF && (
+          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: onhand ? color.accent : color.muted, lineHeight: 1 }}>{cat}</span>
         )}
         <p style={{ fontSize: '20px', fontWeight: 600, color: color.ink, margin: 0, lineHeight: 1.25, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.name}</p>
         {p.description && (

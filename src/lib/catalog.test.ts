@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchProducts, findDuplicateGroups, duplicateIds, findNameCollision } from './catalog'
+import { searchProducts, findDuplicateGroups, duplicateIds, findNameCollision, groupForDisplay, ONHAND_SHELF, UNCATEGORIZED_SHELF } from './catalog'
 import type { Product } from '../db'
 
 let nextId = 1
@@ -123,5 +123,63 @@ describe('findNameCollision', () => {
     const all = [makeProduct({ name: 'Ube Halaya' })]
     expect(findNameCollision(all, '')).toBeUndefined()
     expect(findNameCollision(all, 'Lipstick')).toBeUndefined()
+  })
+})
+
+describe('groupForDisplay', () => {
+  it('puts onhand stock on its own shelf, first', () => {
+    const shelves = groupForDisplay([
+      makeProduct({ name: 'Ube Halaya', category: 'Snacks' }),
+      makeProduct({ name: 'Rice 5kg', category: 'Grocery', onhand: true }),
+    ])
+    // Grocery is gone, not empty: its only item moved to the onhand shelf.
+    expect(shelves.map(s => s.name)).toEqual([ONHAND_SHELF, 'Snacks'])
+    expect(shelves[0].onhand).toBe(true)
+    expect(shelves[0].products.map(p => p.name)).toEqual(['Rice 5kg'])
+  })
+
+  it('takes an onhand product out of its own category, so it appears once', () => {
+    const shelves = groupForDisplay([
+      makeProduct({ name: 'Rice 5kg', category: 'Grocery', onhand: true }),
+      makeProduct({ name: 'Sugar 1kg', category: 'Grocery' }),
+    ])
+    expect(shelves.map(s => s.name)).toEqual([ONHAND_SHELF, 'Grocery'])
+    expect(shelves.find(s => s.name === 'Grocery')!.products.map(p => p.name)).toEqual(['Sugar 1kg'])
+    const appearances = shelves.flatMap(s => s.products).filter(p => p.name === 'Rice 5kg')
+    expect(appearances).toHaveLength(1)
+  })
+
+  it('drops the onhand shelf entirely when nothing is in hand', () => {
+    const shelves = groupForDisplay([makeProduct({ category: 'Snacks' })])
+    expect(shelves.map(s => s.name)).toEqual(['Snacks'])
+    expect(shelves.every(s => !s.onhand)).toBe(true)
+  })
+
+  it('sorts categories A-Z and sinks the uncategorized remainder', () => {
+    const shelves = groupForDisplay([
+      makeProduct({ name: 'Mystery', category: '   ' }),
+      makeProduct({ name: 'Ube', category: 'Snacks' }),
+      makeProduct({ name: 'Rice', category: 'Grocery' }),
+      makeProduct({ name: 'Soap', category: 'Bath', onhand: true }),
+    ])
+    expect(shelves.map(s => s.name)).toEqual([ONHAND_SHELF, 'Grocery', 'Snacks', UNCATEGORIZED_SHELF])
+  })
+
+  it('treats a missing onhand flag as not onhand, so old products still shelve', () => {
+    const legacy = makeProduct({ name: 'Old Item', category: 'Snacks' })
+    delete (legacy as Partial<Product>).onhand
+    expect(groupForDisplay([legacy]).map(s => s.name)).toEqual(['Snacks'])
+  })
+
+  it('keeps the order it was handed within a shelf', () => {
+    const shelves = groupForDisplay([
+      makeProduct({ name: 'Aaa', category: 'Grocery' }),
+      makeProduct({ name: 'Bbb', category: 'Grocery' }),
+    ])
+    expect(shelves[0].products.map(p => p.name)).toEqual(['Aaa', 'Bbb'])
+  })
+
+  it('returns nothing for an empty catalog', () => {
+    expect(groupForDisplay([])).toEqual([])
   })
 })
